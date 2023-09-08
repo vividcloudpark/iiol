@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="row">
+    <h2>Detect Barcodes</h2>
+  
+    <div id="qr-reader" style="width:500px"></div>
+
+
+    
+
+
+    <div class="col-md-6">
+
+        <form action="{% url 'barcode:upload' %}" method="POST"  enctype="multipart/form-data">{% csrf_token %}
+            <input type ="file" name="barcode_photo" id="btn_ReadQRCode" class="btn btn-primary" accept="image/*" href="*">Read QR code data
+            
+            <button type="submit">
+        </form>
+        <br />
+    </div>
+</div>
+
+<script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
+<script>
+    function onScanSuccess(qrCodeMessage) {
+        alert(qrCodeMessage)
+        // handle on success condition with the decoded message
+    }
+    
+    var html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess);
+    </script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+{% comment %} <script>
+    $("#btn_ReadQRCode").on("change", function (e) {
+        console.log("Ajax request triggered.");
+        e.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'barcode:camera_feed' %}",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                dataType: "json",
+            },
+            success: function (data) {
+                if (data.barcode_data !== null && data.barcode_data !== '') {
+                    console.log(data);
+                    $("#txt_BarcodeData").html(data.barcode_data);
+                    $("#lbl_LastModified").html(
+                        "Last modified at: " + data.file_saved_at
+                    );
+                } else {
+                    console.log(data);
+                    $("#txt_BarcodeData").html("");
+                    $("#lbl_LastModified").html("<h3><em>No data or file not found. Scan barcode again.</em></h3>");
+                }
+            },
+            error: function () {
+                console.log(error);
+            }
+        });
+    });
+</script> {% endcomment %}
+
+<script src="https://unpkg.com/html5-qrcode.min.js" type="text/javascript">
+{% endblock content %}

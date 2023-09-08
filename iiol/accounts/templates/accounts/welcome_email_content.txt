@@ -1,0 +1,1 @@
+{{ user.fisrt_name }} {{ user.last name }} 님, BRKV 가입을 환영합니다.

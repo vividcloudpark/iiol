@@ -1,0 +1,15 @@
+django~=4.2.4
+django-bootstrap5
+pillow
+easy-thumbnails
+djangorestframework
+markdown
+django-filter 
+python-dotenv
+
+#barcode detect
+opencv-python
+pyzbar
+
+
+asgiref==3.3.1
