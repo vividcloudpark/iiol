@@ -3,71 +3,120 @@
 {% load static %}
 
 {% block content %}
-
-<div class="row">
-    <h2>Detect Barcodes</h2>
-  
-    <div id="qr-reader" style="width:500px"></div>
+<div class="container">
+    <div class="row">
 
 
-    
+        <div class="card col-md-6 mt-5">
+            <div class="card-header">
+                <h2>ISBN으로 검색</h2>
+            </div>
+            <div class="card-body">
+            <form action="{% url 'barcode:upload' %}" method="POST"  enctype="multipart/form-data">{% csrf_token %}
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <div>
+                        <select name="big_region" id="selectbox-big_region" onchange="updateSRegionCodeSelect()"></select>
+                        </div>
+                        <div>
+                            <select name="region_code" id="selectbox-small_region_code">
 
+                            </select>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
 
-    <div class="col-md-6">
+                    </li>
+                    <li class="list-group-item">
+                        <div>
+                            <input id="inputbox-photo" type ="file" name="barcode_photo" id="btn_ReadQRCode" accept="image/*" href="*">
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div>
+                            <input id="inputbox-ISBN" type ="text" name="ISBN_string" accept="text/*" href="*">ISBN
+                        </div>
+                    </li>
+                </ul>
+                <button type="submit"> 검색! </button>
+            </form>
+        </div>
 
-        <form action="{% url 'barcode:upload' %}" method="POST"  enctype="multipart/form-data">{% csrf_token %}
-            <input type ="file" name="barcode_photo" id="btn_ReadQRCode" class="btn btn-primary" accept="image/*" href="*">Read QR code data
-            
-            <button type="submit">
-        </form>
-        <br />
     </div>
 </div>
 
+ <script>
+
+
+        let apiUrl = '{% url 'barcode:region_code' %}';
+        var regionJson;
+        fetch(apiUrl)
+        .then(response => {
+            // HTTP 상태 코드 확인
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(jsonData=> {
+            regionJson = jsonData;
+            //지역코드 - 대분류 추가
+            const bigRegion = document.getElementById("selectbox-big_region");
+
+
+            // 두 번째 Select Box (작은 지역 코드)를 가져옵니다.
+            for (const [bigKey, bigValue] of Object.entries(jsonData)) {
+                var bigOption = document.createElement("option");
+                bigOption.text = bigKey;
+                bigOption.value = bigValue.code;
+                bigRegion.appendChild(bigOption);
+            }
+            const smallRegion = document.getElementById("selectbox-small_region_code");
+
+            var smallOption = document.createElement("option");
+            smallOption.text = "선택하세요";
+            smallOption.value = null;
+            smallRegion.appendChild(smallOption);
+        })
+        .catch(error => {
+            // 오류 처리 코드
+            console.error('Fetch error:', error);
+        });
+
+       function updateSRegionCodeSelect() {
+            // 첫 번째 Select Box에서 선택한 값을 가져옵니다.
+            const bigRegionSelect = document.getElementById("selectbox-big_region");
+            var selectedBigRegion = bigRegionSelect.value;
+            const smallRegion = document.getElementById("selectbox-small_region_code");
+
+           for (const [Key, Value] of Object.entries(regionJson)) {
+               if (Value.code ==  selectedBigRegion) {
+                   console.log(Value)
+                   for (var i = 0; i<Value.small_region.length(); i++) {
+                       console.log(Value.small_region[i]);
+                   }
+
+                        var smallOption = document.createElement("option");
+                        smallOption.text = smallCode.name ;
+                        smallOption.value = smallCode.code;
+                        smallRegion.appendChild(smallOption);
+                   }
+
+
+                   break;
+               }
+
+
+            // 두 번째 Select Box를 비웁니다.
+
+
+        }
+</script>
+
+
 <script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
-<script>
-    function onScanSuccess(qrCodeMessage) {
-        alert(qrCodeMessage)
-        // handle on success condition with the decoded message
-    }
-    
-    var html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess);
-    </script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
-{% comment %} <script>
-    $("#btn_ReadQRCode").on("change", function (e) {
-        console.log("Ajax request triggered.");
-        e.preventDefault();
-        $.ajax({
-            type: "POST",
-            url: "{% url 'barcode:camera_feed' %}",
-            data: {
-                csrfmiddlewaretoken: "{{ csrf_token }}",
-                dataType: "json",
-            },
-            success: function (data) {
-                if (data.barcode_data !== null && data.barcode_data !== '') {
-                    console.log(data);
-                    $("#txt_BarcodeData").html(data.barcode_data);
-                    $("#lbl_LastModified").html(
-                        "Last modified at: " + data.file_saved_at
-                    );
-                } else {
-                    console.log(data);
-                    $("#txt_BarcodeData").html("");
-                    $("#lbl_LastModified").html("<h3><em>No data or file not found. Scan barcode again.</em></h3>");
-                }
-            },
-            error: function () {
-                console.log(error);
-            }
-        });
-    });
-</script> {% endcomment %}
 
-<script src="https://unpkg.com/html5-qrcode.min.js" type="text/javascript">
 {% endblock content %}
