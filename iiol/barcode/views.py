@@ -44,7 +44,7 @@ class BarcodeViewSet(APIView):
             returning_data = {'barcode_data': ISBN,
                            'result' : {'book_detail' : book_detail,
                                        'library_info' : library_info}}
-            return JsonResponse(data=returning_data, status=200)
+            return JsonResponse(data=returning_data, json_dumps_params={'ensure_ascii': False}, status=200)
         else:
             return JsonResponse(data={'barcode_data': None}, status=404)
 
