@@ -43,13 +43,16 @@ class LibraryApi:
         request_params['dtl_region'] = str(subregion)
         request_params['pageSize'] = 20
         lib_response = self.request(request_params)
-
         lib_code_list = []
-        if lib_response['numFound'] != 0:
-            for lib in lib_response['libs']:
-                lib_dict = {
-                    'lib_code': lib['lib']['libCode'], 'lib_name': lib['lib']['libName']}
-                lib_code_list.append(lib_dict)
+
+        try :
+            if lib_response['numFound'] != 0:
+                for lib in lib_response['libs']:
+                    lib_dict = {
+                        'lib_code': lib['lib']['libCode'], 'lib_name': lib['lib']['libName']}
+                    lib_code_list.append(lib_dict)
+        except:
+            pass
 
         return lib_code_list
 

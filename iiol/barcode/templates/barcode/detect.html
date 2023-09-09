@@ -16,7 +16,7 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div>
-                        <select name="big_region" id="selectbox-big_region" onchange="updateSRegionCodeSelect()"></select>
+                        <select name="big_region" id="selectbox-big_region"></select>
                         </div>
                         <div>
                             <select name="region_code" id="selectbox-small_region_code">
@@ -50,6 +50,9 @@
 
         let apiUrl = '{% url 'barcode:region_code' %}';
         var regionJson;
+
+        const bigRegionSelect = document.getElementById("selectbox-big_region");
+        const smallRegionSelect = document.getElementById("selectbox-small_region_code");
         fetch(apiUrl)
         .then(response => {
             // HTTP 상태 코드 확인
@@ -61,56 +64,48 @@
         .then(jsonData=> {
             regionJson = jsonData;
             //지역코드 - 대분류 추가
-            const bigRegion = document.getElementById("selectbox-big_region");
 
 
-            // 두 번째 Select Box (작은 지역 코드)를 가져옵니다.
-            for (const [bigKey, bigValue] of Object.entries(jsonData)) {
-                var bigOption = document.createElement("option");
-                bigOption.text = bigKey;
-                bigOption.value = bigValue.code;
-                bigRegion.appendChild(bigOption);
+            // Populate the "big" region select box
+            for (const [bigcode, bigValue] of Object.entries(jsonData.big)) {
+                const bigOption = document.createElement("option");
+                bigOption.text = bigValue;
+                bigOption.value = bigcode;
+                bigRegionSelect.appendChild(bigOption);
             }
-            const smallRegion = document.getElementById("selectbox-small_region_code");
+            bigRegionSelect.addEventListener("change", populateSmallRegion);
+            populateSmallRegion();
 
-            var smallOption = document.createElement("option");
-            smallOption.text = "선택하세요";
-            smallOption.value = null;
-            smallRegion.appendChild(smallOption);
         })
         .catch(error => {
             // 오류 처리 코드
             console.error('Fetch error:', error);
         });
 
-       function updateSRegionCodeSelect() {
-            // 첫 번째 Select Box에서 선택한 값을 가져옵니다.
-            const bigRegionSelect = document.getElementById("selectbox-big_region");
-            var selectedBigRegion = bigRegionSelect.value;
-            const smallRegion = document.getElementById("selectbox-small_region_code");
-
-           for (const [Key, Value] of Object.entries(regionJson)) {
-               if (Value.code ==  selectedBigRegion) {
-                   console.log(Value)
-                   for (var i = 0; i<Value.small_region.length(); i++) {
-                       console.log(Value.small_region[i]);
-                   }
-
-                        var smallOption = document.createElement("option");
-                        smallOption.text = smallCode.name ;
-                        smallOption.value = smallCode.code;
-                        smallRegion.appendChild(smallOption);
-                   }
+        function populateSmallRegion() {
+            // Clear the current options in the "small" region select box
+            smallRegionSelect.innerHTML = "";
 
 
-                   break;
-               }
+            const selectedBigRegion = bigRegionSelect.value;
 
-
-            // 두 번째 Select Box를 비웁니다.
-
-
+            if (selectedBigRegion in regionJson.small) {
+                const smallRegionData = regionJson.small[selectedBigRegion];
+                // Populate the "small" region select box based on the selected "big" region
+                for (const [smallcode, smallValue] of Object.entries(smallRegionData)) {
+                    const smallOption = document.createElement("option");
+                    smallOption.text = smallValue;
+                    smallOption.value = smallcode;
+                    smallRegionSelect.appendChild(smallOption);
+                }
+            }
         }
+
+
+
+
+
+
 </script>
 
 
