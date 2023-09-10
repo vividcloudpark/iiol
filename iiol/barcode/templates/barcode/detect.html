@@ -25,10 +25,14 @@
                         </div>
                     </li>
                     <li class="list-group-item">
-
+                        바코드 리더기 - by [https://scanapp.org/html5-qrcode-docs/docs/intro]
+                        <div id="reader">
+                            <input type="file" id="qr-input-file" accept="image/*" capture>
+                        </div>
                     </li>
                     <li class="list-group-item">
-                        <div>
+                        직접 사진찍어 ISBN 백엔드에서 추출
+                       <div>
                             <input id="inputbox-photo" type ="file" name="barcode_photo" id="btn_ReadQRCode" accept="image/*" href="*">
                         </div>
                     </li>
@@ -44,10 +48,22 @@
 
     </div>
 </div>
+<script src="{% static 'js/html5-qrcode.min.js' %}"></script>
 
+<script>
+    const html5QrCode = new Html5Qrcode("reader");
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+        document.getElementById('inputbox-ISBN').setValue(decodedText);
+    };
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    // If you want to prefer back camera
+    html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback, );
+
+</script>
+</script>
  <script>
-
-
         let apiUrl = '{% url 'barcode:region_code' %}';
         var regionJson;
 
@@ -112,6 +128,5 @@
 <script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-
 
 {% endblock content %}

@@ -29,7 +29,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz']
+ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz', '192.168.0.2']
 
 
 # Application definition
