@@ -14,4 +14,4 @@ urlpatterns = [
     path('', views.detect, name='detect_barcodes'),
     path('upload/', views.BarcodeViewSet.as_view(), name='upload'),
     path('region_code/', views.retrieve_region_code, name='region_code'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
