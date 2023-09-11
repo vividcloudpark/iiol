@@ -7,13 +7,16 @@ from django.core.validators import RegexValidator
 
 
 class User(AbstractUser):
-
     bio = models.TextField(blank=True)
-
     phone_number = models.CharField(
         validators=[RegexValidator("^010-?[1-9]\d{3}-?\d{4}$")],
         max_length=14,
         default='000-0000-0000')
+
+    # my_region = models.ForeignKey(
+    #     "library.SmallRegion", on_delete=models.CASCADE)
+    # my_library = models.ForeignKey(
+    #     "library.Library", on_delete=models.CASCADE)
 
     @property
     def user_name(self):

@@ -25,6 +25,9 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('accounts/', include('accounts.urls')),
     path('barcode/', include('barcode.urls')),
+    path('library/', include('library.urls')),
+    path('books/', include('books.urls')),
+    path('mybookwishlist/', include('mybookwishlist.urls')),
 ]
 
 
@@ -37,5 +40,5 @@ if settings.DEBUG:
                           document_root=settings.MEDIA_ROOT)
     urlpatterns += static('static/',
                           document_root=settings.STATIC_ROOT)
-    # urlpatterns += static(settings.STATIC_URL,
-    #                       document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.STATIC_URL,
+                          document_root=settings.STATIC_ROOT)
