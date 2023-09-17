@@ -1,18 +1,19 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 <div class="container">
     <div class="row">
 
 
-        <div class="card col-md-6 mt-5">
+        <div class="card col-md-8 mt-5">
             <div class="card-header">
                 <h2>ISBN으로 검색</h2>
             </div>
             <div class="card-body">
-            <form action="{% url 'barcode:upload' %}" method="POST"  enctype="multipart/form-data">{% csrf_token %}
+            <form action="{% url 'barcode:upload' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div>
@@ -24,12 +25,17 @@
                             </select>
                         </div>
                     </li>
+                     {% comment %} <li id = 'barcode-reader' class="list-group-item">
+                        바코드 리더기 - by [https://scanapp.org/html5-qrcode-docs/docs/intro]
+                        <div id="reader">
+                            <input type="file" id="qr-input-file" accept="image/*" capture>
+                        </div>
+                    </li>  {% endcomment %}
                     <li class="list-group-item">
-
-                    </li>
-                    <li class="list-group-item">
-                        <div>
+                        직접 업로드하여 ISBN 백엔드에서 추출
+                       <div>
                             <input id="inputbox-photo" type ="file" name="barcode_photo" id="btn_ReadQRCode" accept="image/*" href="*">
+                            {% comment %} <canvas id = "inputbox-photo-canvas" style="height:0px;"></canvas> {% endcomment %}
                         </div>
                     </li>
                     <li class="list-group-item">
@@ -44,10 +50,51 @@
 
     </div>
 </div>
+{% comment %} <script src="{% static 'js/barcode/resize_photo.js' %}"></script> {% endcomment %}
+{% comment %} <script src="{% static 'js/barcode/html5-qrcode.min.js' %}"></script> {% endcomment %}
+
+<script>
+    // File based scanning
+    const fileinput = document.getElementById('qr-input-file');
+    fileinput.addEventListener('change', e => {
+    if (e.target.files.length == 0) {
+        // No file selected, ignore 
+        return;
+    }
+
+    // Use the first item in the list
+    const imageFile = e.target.files[0];
+    html5QrCode.scanFile(imageFile, /* showImage= */true)
+    .then(qrCodeMessage => {
+        // success, use qrCodeMessage
+        document.getElementById('inputbox-ISBN').value = decodedText;
+    })
+    .catch(err => {
+        // failure, handle it.
+        console.log(`Error scanning file. Reason: ${err}`)
+    });
+    });
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Handle on success condition with the decoded text or result.
+        alert(`Code matched = ${decodedText}`);
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+        document.getElementById('inputbox-ISBN').value = decodedText;
+        html5QrcodeScanner.clear();
+    }
+    
+    function onScanError(errorMessage) {
+        // handle on error condition, with error message
+    }
+    
+    var html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess, onScanError);
+</script>
+
 
  <script>
-
-
+        // 도서관 대분류, 중분류 
         let apiUrl = '{% url 'barcode:region_code' %}';
         var regionJson;
 
@@ -100,18 +147,9 @@
                 }
             }
         }
-
-
-
-
-
-
 </script>
 
 
-<script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-
 
 {% endblock content %}

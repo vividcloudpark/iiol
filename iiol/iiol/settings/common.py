@@ -29,7 +29,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz']
+ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz', '192.168.0.2']
 
 
 # Application definition
@@ -49,10 +49,13 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'easy_thumbnails',
     # Myapps
+    'iiol',
     'accounts',
     'barcode',
-
+    'library',
+    'books',
 ]
+
 
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -91,12 +94,15 @@ WSGI_APPLICATION = 'iiol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+AUTH_USER_MODEL = "accounts.User"
 
 INTERNAL_IPS = ['127.0.0.1']
 # Password validation
@@ -117,7 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "accounts.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -134,13 +139,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+FORCE_SCRIPT_NAME = '/app'
+STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
+# STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'iiol', 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_URL = '/media/'
+MEDIA_URL = f'/{FORCE_SCRIPT_NAME}/media/'
+# MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
