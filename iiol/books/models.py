@@ -4,7 +4,7 @@ from iiol.models import BaseTimeModel
 
 class Book(BaseTimeModel):
     isbn13 = models.CharField(
-        blank=False, db_index=True, primary_key=True, max_length=13)
+        blank=False, unique=True, db_index=True, primary_key=True, max_length=13)
     isbn = models.CharField(max_length=10)
     bookname = models.CharField(blank=False, max_length=300)
     publication_date = models.CharField(max_length=20)

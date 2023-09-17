@@ -12,3 +12,7 @@ opencv-python
 pyzbar
 
 requests
+
+
+#postgreSQL driver
+psycopg2-binary

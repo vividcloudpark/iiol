@@ -29,6 +29,10 @@ urlpatterns = [
     path('books/', include('books.urls')),
     path('mybookwishlist/', include('mybookwishlist.urls')),
 ]
+urlpatterns += static(settings.MEDIA_URL,
+                      document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL,
+                      document_root=settings.STATIC_ROOT)
 
 
 if settings.DEBUG:
@@ -36,9 +40,3 @@ if settings.DEBUG:
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
-    urlpatterns += static('static/',
-                          document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.STATIC_URL,
-                          document_root=settings.STATIC_ROOT)
