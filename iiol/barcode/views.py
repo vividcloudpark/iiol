@@ -42,6 +42,13 @@ class BarcodeViewSet(APIView):
         if ISBN:
             api = LibraryApi()
             print(ISBN, region_code)
+            # 1: ISBN으로 Book DB에 해당 책 정보가 있는지 검색
+
+            # 2:  TODO 1의 ISBN 정보가 있다면,  해당 지역 도서관에 책 있는지 검색
+
+            # 3:  TODO 1의 ISBN 정보가 없다면 ISBN정보를 추가하는 작업 워커 추가
+
+
             book_detail, library_info = api.is_there_book_in_my_region(
                 subregion=region_code, ISBN=ISBN)
             returning_data = {'request_data': {'ISBN': ISBN, 'region_code': region_code},

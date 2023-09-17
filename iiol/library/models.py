@@ -27,7 +27,6 @@ class BigRegion(BaseTimeModel, models.Model):
 
     big_region_code=models.CharField(
         max_length=2, choices=BIG_REGION_CODE, primary_key=True)
-    big_region_name=models.CharField(max_length=10)
 
     class Meta:
         ordering=["big_region_code"]
@@ -300,7 +299,6 @@ class SmallRegion(BaseTimeModel, models.Model):
     big_region_code=models.ForeignKey("library.BigRegion", on_delete=models.CASCADE)
     small_region_code=models.CharField(
         max_length=5, choices=SMALL_REGION_CODE, primary_key=True,db_index=True)
-    small_region_name=models.CharField(max_length=10)
     class Meta:
         ordering=["small_region_code"]
 
@@ -321,4 +319,4 @@ class Library(BaseTimeModel, models.Model):
         "library.SmallRegion", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'[{self.libcode}]({self.small_region_code}) {libName}'
+        return f'[{self.libcode}]({self.small_region_code}) {self.libName}'
