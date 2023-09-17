@@ -34,6 +34,8 @@ class LibraryApi:
             lib_available_list.append(lib)
         return book_detail, lib_available_list
 
+
+
     def search_libcode_by_region(self, region=11, subregion=None):
         # [1. 지역내 도서관 코드 조회]
         self.SERVICE_NAME = 'libSrch'
