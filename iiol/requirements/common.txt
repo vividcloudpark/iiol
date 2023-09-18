@@ -16,3 +16,6 @@ requests
 
 #postgreSQL driver
 psycopg2-binary
+
+#redis
+django-redis

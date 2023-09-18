@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import os
 from os.path import abspath, dirname
@@ -70,6 +69,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'iiol.urls'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'localhost:6379',
+    },
+}
 
 TEMPLATES = [
     {
