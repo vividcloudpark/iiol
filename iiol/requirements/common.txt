@@ -12,3 +12,10 @@ opencv-python
 pyzbar
 
 requests
+
+
+#postgreSQL driver
+psycopg2-binary
+
+#redis
+django-redis
