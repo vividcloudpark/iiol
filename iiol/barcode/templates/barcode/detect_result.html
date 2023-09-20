@@ -9,15 +9,18 @@
             <div class="card-header">
                 <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
                 <div id="region_code">{{request_data.region_code }}</div>
+                {% if status.code == "S" and status.msg != None %}
+                    <div id="I_feeling_lucky">{{status.msg}}</div>
+                {% endif %}
+                <button>내 WishbookList에 추가</button>
             </div>
             </hr>
             <div class="card-body">
                 <table>
                     <thead>
                         <h2>도서정보</h2>
-                        <button>내 WishbookList에 추가</button>
                     </thead>
-                    {% for book in book_detail %}
+                    {% for book in result_data.book_detail %}
                     <tbody>
                         <tr><h3><div>{{ book.bookname }}</div><h3></tr>
                         <tr><div>{{ book.publication_year }}</div></tr>
@@ -43,7 +46,7 @@
                     <tr>
 
                 </thead>
-                    {% for key, lib in library_info.items %}   
+                    {% for key, lib in result_data.library_info.items %}   
                         <tr>
                             <td>{{lib.libCode}}</td>
                             <td>{{lib.libName}}</td>
