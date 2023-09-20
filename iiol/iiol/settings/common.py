@@ -70,12 +70,17 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'iiol.urls'
 
+CACHE_TTL = 60 * 60 * 24  # 24h
+
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'localhost:6379',
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://localhost:6379',
+        'KEY_PREFIX': 'D_CACHE',
     },
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 TEMPLATES = [
     {
@@ -155,19 +160,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 FORCE_SCRIPT_NAME = '/app'
-# STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
-STATIC_URL = '/static/'
-
+STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
+# STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'iiol', 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 #
-# MEDIA_URL = f'/{FORCE_SCRIPT_NAME}/media/'
-MEDIA_URL = '/media/'
+MEDIA_URL = f'/{FORCE_SCRIPT_NAME}/media/'
+# MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
+CSRF_TRUSTED_ORIGINS = ['https://thecloudpark.xyz']
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -175,7 +179,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CELERY_ALWAYS_EAGER = True
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TAST_SERIALIZER = 'json'

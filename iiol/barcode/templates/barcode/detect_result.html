@@ -9,24 +9,27 @@
             <div class="card-header">
                 <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
                 <div id="region_code">{{request_data.region_code }}</div>
+                {% if status.code == "S" and status.msg != None %}
+                    <div id="I_feeling_lucky">{{status.msg}}</div>
+                {% endif %}
+                <button>내 WishbookList에 추가</button>
             </div>
             </hr>
             <div class="card-body">
                 <table>
                     <thead>
                         <h2>도서정보</h2>
-                        <button>내 WishbookList에 추가</button>
                     </thead>
-                    {% for book in book_detail.detail %}
+                    {% for book in result_data.book_detail %}
                     <tbody>
-                        <tr><h3><div>{{ book.book.bookname }}</div><h3></tr>
-                        <tr><div>{{ book.book.publication_year }}</div></tr>
-                        <tr><div>{{ book.book.authors }}</div></tr>
-                        <tr><div>{{ book.book.publisher }}</div></tr>
-                        <tr><div><img src="{{ book.book.bookImageURL }}"></div></tr>
-                        <tr><div>{{ book.book.isbn13 }}</div></tr>
-                        <tr><div>{{ book.book.isbn }}</div></tr>
-                        <tr><div>{{ book.book.description }}</div></tr>
+                        <tr><h3><div>{{ book.bookname }}</div><h3></tr>
+                        <tr><div>{{ book.publication_year }}</div></tr>
+                        <tr><div>{{ book.authors }}</div></tr>
+                        <tr><div>{{ book.publisher }}</div></tr>
+                        <tr><div><img src="{{ book.bookImageURL }}"></div></tr>
+                        <tr><div>{{ book.isbn13 }}</div></tr>
+                        <tr><div>{{ book.isbn }}</div></tr>
+                        <tr><div>{{ book.description }}</div></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -43,13 +46,14 @@
                     <tr>
 
                 </thead>
-                    {% for lib in library_info %}   
+                    {% for key, lib in result_data.library_info.items %}   
                         <tr>
-                            <td>{{lib.lib_code}}</td>
-                            <td>{{lib.lib_name}}</td>
+                            <td>{{lib.libCode}}</td>
+                            <td>{{lib.libName}}</td>
                             <td>{{lib.hasBook}}</td>
                             <td>{{lib.loanAvailable}}</td>
                         </tr>
+                        {{ break }}
                     {% endfor %}
                 </tbody>
             </table>

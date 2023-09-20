@@ -14,49 +14,21 @@ class LibraryApi:
         self.LIBRARY_API_KEY = os.environ.get('LIBRARY_API_KEY')
         self.SERVICE_NAME = ''
 
-    def is_there_book_in_my_region(self, ISBN=None, region=None, subregion=None):
-        # [6.도서상세조회 API] +  # [11.도서관별 도서 소장여부 및 대출가능여부 조회]
-        if ISBN == None or subregion == None:
-            return False
-        book_detail = self.search_book_detail_by_ISBN(ISBN)
-        print(json.dumps(book_detail, indent=4, ensure_ascii=False))
-        lib_code_list = self.search_libcode_by_region(
-            subregion=subregion)
-
-        lib_available_list = []
-        for lib in lib_code_list:
-            res = self.search_book_availability_of_lib_by_ISBN(
-                lib['lib_code'], ISBN)
-            if res['result']['hasBook'] != 'Y':
-                continue
-            lib['hasBook'] = res['result']['hasBook']
-            lib['loanAvailable'] = res['result']['loanAvailable']
-            lib_available_list.append(lib)
-        return book_detail, lib_available_list
-
-
-
-    def search_libcode_by_region(self, region=11, subregion=None):
+   
+    def search_libcode_by_region(self, region_code=None):
         # [1. 지역내 도서관 코드 조회]
         self.SERVICE_NAME = 'libSrch'
         request_params = {}
-        request_params['region'] = str(region)
-        request_params['dtl_region'] = str(subregion)
+        request_params['region'] = str(region_code)[0:2]
+        request_params['dtl_region'] = str(region_code)
         request_params['pageSize'] = 20
         lib_response = self.request(request_params)
-        print(lib_response)
-        lib_code_list = []
+        
         try :
             if lib_response['numFound'] != 0:
-                for lib in lib_response['libs']:
-                    lib_dict = {
-                        'lib_code': lib['lib']['libCode'], 'lib_name': lib['lib']['libName']}
-                    lib_code_list.append(lib_dict)
+                return [lib_item['lib'] for lib_item in lib_response['libs']]
         except:
-            pass
-
-        return lib_code_list
-
+            return []       
 
     def search_book_detail_by_ISBN(self, ISBN):
         # [6.도서상세조회 API]
@@ -68,7 +40,7 @@ class LibraryApi:
         return self.request(request_params)
 
 
-    def search_book_availability_of_lib_by_ISBN(self, lib_code,  ISBN):
+    def search_book_availability_of_lib_by_ISBN(self, lib_code=None,  ISBN=None):
         # [11.도서관별 도서 소장여부 및 대출가능여부 조회]
         self.SERVICE_NAME = 'bookExist'
         request_params = {}
@@ -87,6 +59,7 @@ class LibraryApi:
 
         FINAL_URL += '&format=json'
 
+        print(f'API CALLED ->>> {self.SERVICE_NAME}')
         res = requests.get(FINAL_URL)
         return res.json()['response']
 

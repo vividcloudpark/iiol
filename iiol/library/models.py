@@ -304,19 +304,19 @@ class SmallRegion(BaseTimeModel, models.Model):
 
 
 class Library(BaseTimeModel, models.Model):
-    libcode = models.CharField(max_length=6, primary_key=True, db_index=True)
+    libCode = models.CharField(max_length=6, primary_key=True, db_index=True)
     libName = models.CharField(max_length=50, blank=False)
     address = models.CharField(max_length=200)
     tel = models.CharField(max_length=50)
     fax = models.CharField(max_length=50)
-    latitue = models.CharField(max_length=50)
-    longitude = models.CharField(max_length=50)
+    latitude = models.CharField(max_length=50, blank=True)
+    longitude = models.CharField(max_length=50, blank=True)
     homepage = models.URLField()
-    closed = models.CharField(max_length=50) #휴관일
-    operatingTime = models.CharField(max_length=50)
+    closed = models.TextField(max_length=200) #휴관일
+    operatingTime = models.TextField()
     big_region_code = models.ForeignKey("library.BigRegion", on_delete=models.CASCADE)
     small_region_code = models.ForeignKey(
         "library.SmallRegion", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'[{self.libcode}]({self.small_region_code}) {self.libName}'
+        return f'[{self.libCode}]({self.small_region_code}) {self.libName}'
