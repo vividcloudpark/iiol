@@ -36,11 +36,20 @@ class BarcodeViewSet(APIView):
     ISBN = None
     return_json = None
     region_code = None
+    response_type = "render"
 
+    def response_with_type(self, code, msg, RESTCode=200):
+        self.set_JSON_header(code, msg)
+        if self.response_type == "json":
+            return JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={'ensure_ascii': False})
+        else:
+            return render(request, 'barcode/detect_result.html', {
+                    **self.return_json,
+                })
+        
     def set_JSON_header(self, code, msg):
         self.return_json["status"]["code"] = code
         self.return_json["status"]["msg"] = msg
-
 
     def post(self, request, *args, **kwargs):
         self.return_json = {'status' : {'code' : "", 'msg' : ""},
@@ -53,7 +62,7 @@ class BarcodeViewSet(APIView):
             if request.POST['ISBN_string']:
                 self.ISBN = request.POST['ISBN_string'].strip()
                 if len(self.ISBN) != 13:
-                    self.set_JSON_header('E', '13자리의 ISBN을 입력하십시오.')
+                    self.response_with_type('E', '13자리의 ISBN을 입력하십시오.', RESTCode=404)
             elif request.FILES['barcode_photo']:
                 barcode_photo = request.FILES['barcode_photo'].read()
                 img = bytearray(barcode_photo)
@@ -64,47 +73,26 @@ class BarcodeViewSet(APIView):
                         self.ISBN = detect__string
                         break;
         except:
-            self.set_JSON_header('E', 'ISBN을 추출하던 중 오류가 발생헀습니다. 직접 입력해보십시오.')
-            return render(request, 'barcode/detect_result.html', {
-                    **self.return_json,
-                })
-            # return JsonResponse(data=self.return_json, status=404, json_dumps_params={'ensure_ascii': False})
-        
+            self.response_with_type('E', 'ISBN을 추출하던 중 오류가 발생헀습니다. 직접 입력해보십시오.', RESTCode=404)
 
         if self.ISBN is None:
-            self.set_JSON_header('E', 'ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.')
-            return render(request, 'barcode/detect_result.html', {
-                    **self.return_json,
-                })
-            # return JsonResponse(data=self.return_json, status=404, json_dumps_params={'ensure_ascii': False}, safe=False)
+            self.response_with_type('E', 'ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.', RESTCode=404)
         else:    
             self.return_json['request_data'] = {'ISBN': self.ISBN, 'region_code': self.region_code} 
-            self.return_json['result_data'] ={}
 
             SUCESS, MSG = self.book_info()
 
             if not SUCESS:
-                self.set_JSON_header('E', f'{self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다.')
-                self.return_json['status']['msg'] = f"{self.return_json['status']['msg']} \n MSG" 
-                return render(request, 'barcode/detect_result.html', {
-                    **self.return_json,
-                })
-                # return JsonResponse(data=self.return_json, status=404, json_dumps_params={'ensure_ascii': False})
+                self.response_with_type('E', f'{self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}', RESTCode=404)
+                
+            self.return_json['result_data'] ={}
 
             self.get_library_list(self.region_code)
             self.get_book_availablity_by_libcode()
-
-
             self.return_json['result_data']['book_detail'] = self.BOOKINFO_JSON
             self.return_json['result_data']['library_info'] = self.LIBRARY_INFO_JSON
             
-            self.set_JSON_header('S', MSG)
-
-            return render(request, 'barcode/detect_result.html', {
-                **self.return_json,
-            })
-
-            # return JsonResponse(data=self.return_json, json_dumps_params={'ensure_ascii': False}, status=200)
+            self.response_with_type('S', MSG, RESTCode=200)
     
 
     def get_library_list(self, region_code):
