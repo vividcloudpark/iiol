@@ -40,7 +40,7 @@
                         </div>
                     </li>  {% endcomment %}
                     <li class="list-group-item">
-                        <h3>직접 업로드하여 ISBN 백엔드에서 추출</h3>
+                        <h3>ISBN 백엔드에서 추출(*)</h3>
                        <div>
                             <input id="inputbox-photo" type ="file" name="barcode_photo" accept="image/*">
                         </div>
@@ -62,8 +62,11 @@
                             <input pattern="[0-9]*" id="inputbox-ISBN" class="form-control" type ="number" name="ISBN_string"  accept="text/*" href="*">
                         </div>
                     </li>
+                    <li class="list-group-item">
+                        <button type="submit"> 검색! </button>
+                    </li>
                 </ul>
-                <button type="submit"> 검색! </button>
+                
             </form>
         </div>
 </div>
@@ -129,7 +132,7 @@
 
 {% comment %} <script src="{% static 'barcode/js/quagga.min.js' %}"></script> {% endcomment %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+{% comment %} <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script> 
 <script>
     let _scannerIsRunning = false;
     function startScanner() {
@@ -212,6 +215,7 @@
             console.log("Barcode detected and processed: " + result.codeResult.code);
         }
     });
-
 </script>
+{% endcomment %}
+
 {% endblock content %}
