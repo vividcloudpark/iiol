@@ -4,62 +4,23 @@
 
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="card col-md-8 mt-5">
-            <div class="card-header">
-                <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
-                <div id="region_code">{{request_data.region_code }}</div>
-                {% if status.code == "S" and status.msg != None %}
-                    <div id="I_feeling_lucky">{{status.msg}}</div>
-                {% endif %}
-                <button>내 WishbookList에 추가</button>
+    <div class="card col-md-8 mt-5">
+        <div class="card-header">
+            <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
+            <div id="region_code">{{request_data.region_code }}</div>
+            {% if status.code == "S" and status.msg != None %}
+                <div id="I_feeling_lucky">{{status.msg}}</div>
+            {% endif %}
+            <button>내 WishbookList에 추가</button>
+        </div>
+        </hr>
+            <div class="card-body text-center">
+            {% if status.code == "S" %}
+                {% include "barcode/detect_result_success.html" with result_data=result_data %}
+            {% else %}
+                {{ status.msg }}
+            {% endif %}
             </div>
-            </hr>
-            <div class="card-body">
-                <table>
-                    <thead>
-                        <h2>도서정보</h2>
-                    </thead>
-                    {% for book in result_data.book_detail %}
-                    <tbody>
-                        <tr><h3><div>{{ book.bookname }}</div><h3></tr>
-                        <tr><div>{{ book.publication_year }}</div></tr>
-                        <tr><div>{{ book.authors }}</div></tr>
-                        <tr><div>{{ book.publisher }}</div></tr>
-                        <tr><div><img src="{{ book.bookImageURL }}"></div></tr>
-                        <tr><div>{{ book.isbn13 }}</div></tr>
-                        <tr><div>{{ book.isbn }}</div></tr>
-                        <tr><div>{{ book.description }}</div></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <table>
-                <thead>
-                    <h2>도서관정보</h2>
-                    *도서대출가능여부는 전일기준입니다.
-                    <tr>
-                        <td>도서관코드</td>
-                        <td>도서관이름</td>
-                        <td>도서소장여부</td>
-                        <td>도서대출가능여부</td>
-                    <tr>
-
-                </thead>
-                    {% for key, lib in result_data.library_info.items %}   
-                        <tr>
-                            <td>{{lib.libCode}}</td>
-                            <td>{{lib.libName}}</td>
-                            <td>{{lib.hasBook}}</td>
-                            <td>{{lib.loanAvailable}}</td>
-                        </tr>
-                        {{ break }}
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            
-       </div>
     </div>
 </div>
 

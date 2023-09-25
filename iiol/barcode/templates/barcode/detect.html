@@ -4,25 +4,33 @@
 {% load django_bootstrap5 %}
 
 {% block content %}
+
+<style>
+    canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+</style>
+
 <div class="container">
-    <div class="row">
-
-
         <div class="card col-md-8 mt-5">
             <div class="card-header">
                 <h2>ISBN으로 검색</h2>
             </div>
             <div class="card-body">
+            
             <form action="{% url 'barcode:upload' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
-                        <div>
-                        <select name="big_region" id="selectbox-big_region"></select>
-                        </div>
-                        <div>
-                            <select name="region_code" id="selectbox-small_region_code">
-
-                            </select>
+                        <h3>검색할 도서관 지역</h3>
+                        <div class="flex=container flex-start" style="display:flex; justify-content:left;" >
+                            <div>
+                                <select name="big_region" id="selectbox-big_region"></select>
+                            </div>
+                            <div>
+                                <select name="region_code" id="selectbox-small_region_code"></select>
+                            </div>
                         </div>
                     </li>
                      {% comment %} <li id = 'barcode-reader' class="list-group-item">
@@ -32,66 +40,36 @@
                         </div>
                     </li>  {% endcomment %}
                     <li class="list-group-item">
-                        직접 업로드하여 ISBN 백엔드에서 추출
+                        <h3>직접 업로드하여 ISBN 백엔드에서 추출</h3>
                        <div>
-                            <input id="inputbox-photo" type ="file" name="barcode_photo" id="btn_ReadQRCode" accept="image/*" href="*">
-                            {% comment %} <canvas id = "inputbox-photo-canvas" style="height:0px;"></canvas> {% endcomment %}
+                            <input id="inputbox-photo" type ="file" name="barcode_photo" accept="image/*">
                         </div>
                     </li>
+                    
+                    {% comment %}
                     <li class="list-group-item">
+                        Quagga
+                       <div id="scanner-container">
+                            <div id="scanner-container-canvas"></div>
+                            <input type="button" id="quaggaBtn" value="Start/Stop the scanner" />
+                        </div>
+                    </li>
+                    {% endcomment %}
+
+                    <li class="list-group-item">
+                        <h3>ISBN 입력</h3>
                         <div>
-                            <input id="inputbox-ISBN" type ="text" name="ISBN_string" accept="text/*" href="*">ISBN
+                            <input pattern="[0-9]*" id="inputbox-ISBN" class="form-control" type ="number" name="ISBN_string"  accept="text/*" href="*">
                         </div>
                     </li>
                 </ul>
                 <button type="submit"> 검색! </button>
             </form>
         </div>
-
-    </div>
 </div>
+
 {% comment %} <script src="{% static 'js/barcode/resize_photo.js' %}"></script> {% endcomment %}
 {% comment %} <script src="{% static 'js/barcode/html5-qrcode.min.js' %}"></script> {% endcomment %}
-
-<script>
-    // File based scanning
-    const fileinput = document.getElementById('qr-input-file');
-    fileinput.addEventListener('change', e => {
-    if (e.target.files.length == 0) {
-        // No file selected, ignore 
-        return;
-    }
-
-    // Use the first item in the list
-    const imageFile = e.target.files[0];
-    html5QrCode.scanFile(imageFile, /* showImage= */true)
-    .then(qrCodeMessage => {
-        // success, use qrCodeMessage
-        document.getElementById('inputbox-ISBN').value = decodedText;
-    })
-    .catch(err => {
-        // failure, handle it.
-        console.log(`Error scanning file. Reason: ${err}`)
-    });
-    });
-
-    function onScanSuccess(decodedText, decodedResult) {
-        // Handle on success condition with the decoded text or result.
-        alert(`Code matched = ${decodedText}`);
-        console.log(`Code matched = ${decodedText}`, decodedResult);
-        document.getElementById('inputbox-ISBN').value = decodedText;
-        html5QrcodeScanner.clear();
-    }
-    
-    function onScanError(errorMessage) {
-        // handle on error condition, with error message
-    }
-    
-    var html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
-</script>
-
 
  <script>
         // 도서관 대분류, 중분류 
@@ -149,7 +127,91 @@
         }
 </script>
 
-
+{% comment %} <script src="{% static 'barcode/js/quagga.min.js' %}"></script> {% endcomment %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+<script>
+    let _scannerIsRunning = false;
+    function startScanner() {
+        Quagga.init({
+            inputStream : {
+                name : "Live",
+                type : "LiveStream",
+                locate : true,
+                numOfWorkers: 4,
+                frequency: 10,
+                locator: {
+                    "patchSize": "medium",
+                    "halfSample": true
+                },
+                target: document.querySelector('#scanner-container-canvas'), // 바코드 이미지를 업로드할 input 요소
+                focusMode : 'continuous',
+                constraints: {
+                    width: 480,
+                    height: 320,
+                    aspectRatio: 1,
+                    // deviceId: selectedDevice ? selectedDevice : "default",
+                    //...(cameraId === 'default' ? { facingMode: 'environment' } : { deviceId: cameraId })
+                },
+                decoder: {
+                    readers: ["ean_reader"],
+                    debug: {
+                        drawBoundingBox: true
+                    }
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log("Initialization finished. Starting Quagga...");
+                Quagga.start();
+            }
+        });
+    }
 
+    Quagga.onProcessed(function(result) {
+        var drawingCtx = Quagga.canvas.ctx.overlay,
+            drawingCanvas = Quagga.canvas.dom.overlay;
+
+        if (result) {
+            if (result.boxes) {
+                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                result.boxes.filter(function (box) {
+                    return box !== result.box;
+                }).forEach(function (box) {
+                    Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                });
+            }
+
+            if (result.box) {
+                Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+            }
+
+            if (result.codeResult && result.codeResult.code) {
+                document.querySelector('#inputbox-ISBN').textContent = result.codeResult.code;
+                Quagga.stop();
+            }
+        }
+    });
+
+    document.getElementById("quaggaBtn").addEventListener("click", function () {
+        if (_scannerIsRunning) {
+            _scannerIsRunning = false;
+            Quagga.stop();
+        } else {
+            _scannerIsRunning = true;
+            startScanner();
+        }
+    }, false);
+
+    // 바코드 스캔 중지 시 이벤트 처리
+    Quagga.onDetected(function(result) {
+        if (result.codeResult) {
+            alert("꺅", result.codeResult.code);
+            console.log("Barcode detected and processed: " + result.codeResult.code);
+        }
+    });
+
+</script>
 {% endblock content %}
