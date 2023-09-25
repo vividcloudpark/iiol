@@ -1,5 +1,7 @@
 from django.db import models
 from iiol.models import BaseTimeModel
+
+
 class MybookWishlist(BaseTimeModel):
     user = models.ForeignKey(
         "accounts.User", on_delete=models.CASCADE)

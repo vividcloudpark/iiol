@@ -35,56 +35,65 @@ class BarcodeViewSet(APIView):
     libcode_list = []
     ISBN = None
     return_json = None
+    region_code = None
+    response_type = "render"
+
+    def response_with_type(self, code, msg, RESTCode=200):
+        self.set_JSON_header(code, msg)
+        if self.response_type == "json":
+            return JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={'ensure_ascii': False})
+        else:
+            return render(request, 'barcode/detect_result.html', {
+                    **self.return_json,
+                })
+        
+    def set_JSON_header(self, code, msg):
+        self.return_json["status"]["code"] = code
+        self.return_json["status"]["msg"] = msg
 
     def post(self, request, *args, **kwargs):
+        self.return_json = {'status' : {'code' : "", 'msg' : ""},
+                            'request_data': {'ISBN': self.ISBN, 'region_code': self.region_code},
+                            'result_data' : {}}  
+        
         try:
             if request.POST['region_code']:
                 self.region_code = request.POST['region_code'].strip()
             if request.POST['ISBN_string']:
-                self.ISBN = request.POST['ISBN_string']
+                self.ISBN = request.POST['ISBN_string'].strip()
+                if len(self.ISBN) != 13:
+                    self.response_with_type('E', '13자리의 ISBN을 입력하십시오.', RESTCode=404)
             elif request.FILES['barcode_photo']:
                 barcode_photo = request.FILES['barcode_photo'].read()
                 img = bytearray(barcode_photo)
                 numbyarray = np.asarray(img, dtype=np.uint8)
                 img = cv2.imdecode(buf=numbyarray, flags=cv2.IMREAD_COLOR)
-                self.ISBN = self.bardet.detectAndDecode(img)[0]
+                for detect__string in self.bardet.detectAndDecode(img):
+                    if len(detect__string) == 13:
+                        self.ISBN = detect__string
+                        break;
         except:
-            return JsonResponse(data={'barcode_data': None}, status=400)
-        
-        self.return_json = {'status' : {'code' : "E", 'msg' : ""},
-                            'request_data': {'ISBN': self.ISBN, 'region_code': self.region_code},
-                            'result_data' : {}}  
+            self.response_with_type('E', 'ISBN을 추출하던 중 오류가 발생헀습니다. 직접 입력해보십시오.', RESTCode=404)
 
-        if self.ISBN:
-            print(self.ISBN, self.region_code)
+        if self.ISBN is None:
+            self.response_with_type('E', 'ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.', RESTCode=404)
+        else:    
+            self.return_json['request_data'] = {'ISBN': self.ISBN, 'region_code': self.region_code} 
 
             SUCESS, MSG = self.book_info()
+
             if not SUCESS:
-                self.return_json['status']['msg'] = MSG
-                return JsonResponse(data=self.return_json, status=404)
-                ## TODO: 404 에러를 리턴하면서, 리턴 구조는 어떻게 가져갈것인지 결정
+                self.response_with_type('E', f'{self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}', RESTCode=404)
+                
+            self.return_json['result_data'] ={}
 
             self.get_library_list(self.region_code)
             self.get_book_availablity_by_libcode()
-
-            returning_data = {'request_data': {'ISBN': self.ISBN, 'region_code': self.region_code},
-                              'result': {'book_detail': self.BOOKINFO_JSON,
-                                         'library_info': self.LIBRARY_INFO_JSON}}
-
             self.return_json['result_data']['book_detail'] = self.BOOKINFO_JSON
             self.return_json['result_data']['library_info'] = self.LIBRARY_INFO_JSON
-
-            self.return_json['status']['code'] = "S"
-            self.return_json['status']['msg'] = MSG
-
-            return render(request, 'barcode/detect_result.html', {
-                **self.return_json,
-            })
-
-            # return JsonResponse(data=return_json, json_dumps_params={'ensure_ascii': False}, status=200)
-        else:
-            self.return_json['status']['msg'] = "ISBN을 찾을 수 없었습니다."
-            return JsonResponse(data=self.return_json, status=404)
+            
+            self.response_with_type('S', MSG, RESTCode=200)
+    
 
     def get_library_list(self, region_code):
         LIBRARY_INFO_JSON = cache.get(f'Library_in_{region_code}')
@@ -142,7 +151,7 @@ class BarcodeViewSet(APIView):
                 self.BOOKINFO_JSON = [dict(book) for book in serialized_book]
                 cache.set(f'ISBN13_{self.ISBN}', json.dumps(
                     self.BOOKINFO_JSON), CACHE_TTL)
-            else: # 당신이 이올에서 처음 이책을 발견했어요! 
+            else: # API로 최초조회 -> 당신이 이올에서 처음 이책을 발견했어요! 
                 book_response=self.LibAPI.search_book_detail_by_ISBN(
                     self.ISBN)
                 try:
@@ -198,7 +207,7 @@ def get_region_json_with_cache():
     return region_json
 
 
-@ cache_page(60, key_prefix='barcode:html')
+# @ cache_page(60, key_prefix='barcode:html')
 def detect(request):
     region_json=get_region_json_with_cache()
     return render(request, 'barcode/detect.html', {

@@ -1,0 +1,34 @@
+<table>
+    <tbody>
+    {% for book in result_data.book_detail %}
+        <tr><h4>{{ book.bookname }}<h4></tr>
+        <tr><div><img src="{{ book.bookImageURL }}"></div></tr>
+        <tr><div>{{ book.publication_year }}년  |  {{ book.authors }} | {{ book.publisher }} </div></tr>
+        <tr><div>ISBN : {{ book.isbn13 }}  | {{ book.isbn }} </div></tr>
+        <tr><div>{{ book.description }}</div></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<hr>
+<table style="cellpadding=3px;">
+    <thead>
+    *도서대출가능여부는 전일기준입니다.
+    <tr>
+        <td>코드</td>
+        <td>이름</td>
+        <td>소장여부</td>
+        <td>대출가능여부</td>
+    <tr>
+
+    </thead>
+    <tbody>
+        {% for key, lib in result_data.library_info.items %}   
+            <tr>
+                <td>{{lib.libCode}}</td>
+                <td>{{lib.libName}}</td>
+                <td>{{lib.hasBook}}</td>
+                <td>{{lib.loanAvailable}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
