@@ -1,0 +1,24 @@
+{% load django_bootstrap5 %}
+
+<div class="card">
+    {% if card_title %}
+        <div class="card-header">
+            {{ card_title }}
+        </div>
+    {% endif %}
+    <div class="card-body">
+        {% if card  %}
+            <form actiom="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <input class="btn btn-primary" type="submit" value="{{ submit_label | default:'Submit' }}">
+            </form>
+        {% else %}
+            <div class="alert alert-danger">
+                폼이 없습니다. 
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+

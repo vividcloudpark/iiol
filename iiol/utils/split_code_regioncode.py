@@ -1,3 +1,4 @@
+import json
 codes = """11010 서울특별시 종로구
 11020 서울특별시 중구
 11030 서울특별시 용산구
@@ -260,7 +261,6 @@ codes = """11010 서울특별시 종로구
 39010 제주특별자치도 제주시
 39020 제주특별자치도 서귀포"""
 
-import json
 codelist = codes.split("\n")
 codedict = {}
 big_region_dict = {}
@@ -281,9 +281,8 @@ for code in codelist:
     if big_region_code not in small_region_dict.keys():
         small_region_dict[big_region_code] = {}
     small_region_dict[big_region_code][code] = small_region
-codedict = {'big' : big_region_dict, 'small' : small_region_dict}
+codedict = {'big': big_region_dict, 'small': small_region_dict}
 
-with open('../static/json/region_code.json', 'w', encoding='utf-8') as make_file:
+with open(r'../barcode/static/barcode/json/region_code.json', 'w', encoding='utf-8') as make_file:
     json.dump(codedict, make_file, indent=4, ensure_ascii=False)
     print(json.dumps(codedict, indent=4, ensure_ascii=False))
-

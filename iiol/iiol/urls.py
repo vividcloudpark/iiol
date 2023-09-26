@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 import barcode.views as barcode_view
 
 urlpatterns = [
-    path('', barcode_view.detect),
+    path('', barcode_view.detect_page),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('accounts/', include('accounts.urls')),

@@ -20,7 +20,7 @@
             </div>
             <div class="card-body">
             
-            <form action="{% url 'barcode:upload' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
+            <form action="{% url 'barcode:detect' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <h3>검색할 도서관 지역</h3>

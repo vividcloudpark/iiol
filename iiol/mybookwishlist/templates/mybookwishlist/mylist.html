@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <div class="card col-md-8 mt-5">
+{% if status.code == "S" %}
+{% for mybookwish in result_data %}
+    
+    <div class="card">
+        <div class="card-header">
+            {{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )
+            <div class="item"><button>삭제하기</button></div>
+        </div>
+        <div class="card-body">
+            <div class="container" style="display: flex;">
+                <div class="item"><img src="{{ mybookwish.book.bookImageURL }}" height="150"></div>
+                <div class="item ml-auto">
+                    <h5 class="card-title">{{ mybookwish.when_it_put }}</h5>
+                    <div class="card-text">{{ mybookwish.memo}}</div>
+                </div>
+                
+                
+            </div>
+            
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+
+    {{ status.msg }}
+{% endif %}
+
+    </div>
+</div>
+
+{% endblock content %}

@@ -75,7 +75,7 @@ CACHE_TTL = 60 * 60 * 24  # 24h
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://localhost:6379',
+        'LOCATION': 'redis://192.168.0.10:6379',
         'KEY_PREFIX': 'D_CACHE',
     },
 }
@@ -117,7 +117,7 @@ DATABASES = {
         'NAME': 'iiol',
         'USER': 'django_user',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': 'localhost',
+        'HOST': '192.168.0.10',
         'PORT': '5432',
     }
 }
@@ -159,7 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-FORCE_SCRIPT_NAME = '/app'
+FORCE_SCRIPT_NAME = '/dev'
 STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
 # STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -176,7 +176,7 @@ CSRF_TRUSTED_ORIGINS = ['https://thecloudpark.xyz']
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+LOGIN_REDIRECT_URL = f'{FORCE_SCRIPT_NAME}/mybookwishlist/mylist'
 
 CELERY_ALWAYS_EAGER = True
 CELERY_BROKER_URL = 'redis://localhost:6379'

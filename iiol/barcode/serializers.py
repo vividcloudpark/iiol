@@ -5,4 +5,4 @@ from rest_framework import serializers
 class BarcodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barcode
-        fields = ('image',)
+        fields = '__all__'

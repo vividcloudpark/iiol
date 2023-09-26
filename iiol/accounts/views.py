@@ -6,8 +6,9 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import (
     LoginView, logout_then_login, PasswordChangeView as AuthPasswordChangeView)
-# Create your views here.
 from django.urls import reverse_lazy
+
+
 login = LoginView.as_view(template_name="accounts/login_form.html")
 
 
