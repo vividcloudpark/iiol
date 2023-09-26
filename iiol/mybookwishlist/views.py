@@ -49,7 +49,7 @@ class MybookWishListView(LoginRequiredMixin, APIView):
         if request.content_type == 'application/json':
             self.type = 'json'
         qs = MybookWishlist.objects\
-            .filter(user=request.user)
+            .filter(user=request.user).order_by("-pk")
         serializer = MybookWishlistSerializer(qs, many=True)
         self.return_json['result_data'] = serializer.data
         return self.response_with_type('S', '')
