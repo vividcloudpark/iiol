@@ -8,10 +8,12 @@
         <div class="card-header">
             <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
             <div id="region_code">{{request_data.region_code }}</div>
-            {% if status.code == "S" and status.msg != None %}
-                <div id="I_feeling_lucky">{{status.msg}}</div>
+            {% if status.code == "S" %}
+                {% if status.msg != None %}
+                    <div id="I_feeling_lucky">{{status.msg}}</div>
+                {% endif %}
+                <button id='add-to-mybookwishlist'> 내 WishbookList에 추가</button>
             {% endif %}
-            <button>내 WishbookList에 추가</button>
         </div>
         </hr>
             <div class="card-body text-center">
@@ -23,6 +25,30 @@
             </div>
     </div>
 </div>
+
+<script>
+    function add_mybook(){
+        let apiUrl = '{% url 'mybookwish:add' %}';
+        fetch(apiUrl{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+            body: JSON.stringify({
+                
+            })
+        })
+        .then(response => {
+            // HTTP 상태 코드 확인
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+
+    }
+
+</script>
 
 <script>
     let apiUrl = '{% url 'barcode:region_code' %}';

@@ -219,7 +219,7 @@ def get_region_json_with_cache():
     return region_json
 
 
-# @ cache_page(60, key_prefix='barcode:html')
+@ cache_page(60, key_prefix='barcode:html')
 def detect_page(request):
     region_json=get_region_json_with_cache()
     return render(request, 'barcode/detect.html', {
