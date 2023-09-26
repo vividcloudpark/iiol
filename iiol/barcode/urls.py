@@ -5,13 +5,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 router = DefaultRouter()
-router.register(r'upload', views.BarcodeViewSet)
+router.register(r'detect', views.BarcodeView)
 
 
 app_name = 'barcode'
 
 urlpatterns = [
-    path('', views.detect, name='detect_barcodes'),
-    path('upload/', views.BarcodeViewSet.as_view(), name='upload'),
+    path('', views.detect_page, name='barcode_root'),
+    path('detect/', views.BarcodeView.as_view(), name='detect'),
     path('region_code/', views.retrieve_region_code, name='region_code'),
 ]

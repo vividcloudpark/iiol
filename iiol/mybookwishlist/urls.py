@@ -7,8 +7,9 @@ from django.conf.urls.static import static
 app_name = 'mybookwishlist'
 
 router = DefaultRouter()
-router.register(r'mylist', views.MybookWishListViewSet)
+router.register(r'mylist', views.MybookWishListView)
 
 urlpatterns = [
-    path('mylist/', views.MybookWishListViewSet.as_view(), name='mylist'),
+    path('', views.MybookWishListView.as_view(), name='mybookwishlist_root'),
+    path('mylist/', views.MybookWishListView.as_view(), name='mylist'),
 ]

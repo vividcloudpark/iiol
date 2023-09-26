@@ -26,7 +26,7 @@ from .tasks import save_book_on_DB
 CACHE_TTL = getattr(settings, 'CACHE_TTL')
 
 
-class BarcodeViewSet(APIView):
+class BarcodeView(APIView):
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
     # parser_classes = (MultiPartParser, FormParser)
@@ -56,6 +56,8 @@ class BarcodeViewSet(APIView):
 
     def post(self, request, *args, **kwargs):
         self.request = request
+        if request.content_type == 'application/json':
+            self.type = 'json'
         self.return_json = {'status' : {'code' : "", 'msg' : ""},
                             'request_data': {'ISBN': self.ISBN, 'region_code': self.region_code},
                             'result_data' : {}}  
@@ -210,7 +212,7 @@ class BarcodeViewSet(APIView):
 def get_region_json_with_cache():
     region_json=cache.get('region_json')
     if region_json is None:
-        file_path=os.path.join(settings.STATIC_ROOT, 'json/region_code.json')
+        file_path=os.path.join(settings.STATIC_ROOT, 'barcode/json/region_code.json')
         with open(file_path, 'r', encoding='utf-8') as f:
             region_json=json.load(f)
         cache.set('region_json', region_json, CACHE_TTL)
@@ -218,7 +220,7 @@ def get_region_json_with_cache():
 
 
 # @ cache_page(60, key_prefix='barcode:html')
-def detect(request):
+def detect_page(request):
     region_json=get_region_json_with_cache()
     return render(request, 'barcode/detect.html', {
         'region_json': region_json,
