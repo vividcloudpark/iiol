@@ -7,14 +7,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import (
     LoginView, logout_then_login, PasswordChangeView as AuthPasswordChangeView)
 from django.urls import reverse_lazy
-
-
+from django.conf import settings
 login = LoginView.as_view(template_name="accounts/login_form.html")
 
 
 def logout(request):
     messages.success(request, "로그아웃 되었습니다!")
-    return logout_then_login(request, login_url='accounts/login')
+
+    return logout_then_login(request, login_url=f'{settings.FORCE_SCRIPT_NAME}/accounts/login')
 
 
 def signup(request):

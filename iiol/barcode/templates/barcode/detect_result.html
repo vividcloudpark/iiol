@@ -27,29 +27,53 @@
 </div>
 
 <script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     function add_mybook() {
         let apiUrl = '{% url 'mybookwishlist:mylist' %}';
         fetch(apiUrl, {
             method: "POST",
+            credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json",
             },
             body: JSON.stringify({
                 isbn13: '{{ request_data.ISBN }}',
             }),
         })
-        .then(response => {
-            // HTTP 상태 코드 확인
-            if (!response.ok) {
-                if (response.status === 403){
-                    alert("로그인을 해주세요!");
+        .then(response => response.json())
+        .then(data => {
+                console.log(data)
+                // HTTP 상태 코드 확인
+                if (data.status.code == "S"){
+                    alert("추가했습니다!");
                 }
-                throw new Error('Network response was not ok');
-            }
-            console.log(response);
+                if (data.status.code == "E") {
+                    if (data.status.msg.non_field_errors != null){
+                        alert("이미 추가되었습니다.");
+                    }
+                    throw new Error(JSON.stringify(data.status.msg));
+                }
+                console.log(data);
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error(error);
         });
     }
 
