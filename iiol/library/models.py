@@ -2,9 +2,6 @@ from django.db import models
 from iiol.models import BaseTimeModel
 
 
-
-
-
 class BigRegion(BaseTimeModel, models.Model):
     BIG_REGION_CODE=[
         ("11", "서울특별시"),
@@ -319,4 +316,4 @@ class Library(BaseTimeModel, models.Model):
         "library.SmallRegion", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'[{self.libCode}]({self.small_region_code}) {self.libName}'
+        return f'[{self.libCode}] {self.libName}'

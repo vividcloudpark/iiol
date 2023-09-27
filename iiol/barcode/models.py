@@ -1,5 +1,8 @@
 from django.db import models
 from iiol.models import BaseTimeModel
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 def upload_to(instance, filename):
@@ -7,9 +10,9 @@ def upload_to(instance, filename):
 
 
 class Barcode(BaseTimeModel):
-    'libCode',
-    'small_region_code',
-    lib_code = models.ForeignKey("library.Library",  on_delete=models.CASCADE)
     small_region_code = models.ForeignKey(
         "library.SmallRegion",  on_delete=models.CASCADE)
     ISBN = models.CharField(max_length=13)
+    statusCode = models.CharField(max_length=1, blank=False)
+    statusMsg = models.TextField(blank=True)
+    # UUID만들어서 각 여정별 트래킹?
