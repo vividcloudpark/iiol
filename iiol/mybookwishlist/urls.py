@@ -12,4 +12,5 @@ router.register(r'mylist', views.MybookWishListView)
 urlpatterns = [
     path('', views.MybookWishListView.as_view(), name='mybookwishlist_root'),
     path('mylist/', views.MybookWishListView.as_view(), name='mylist'),
+    # path('delete/<int:userpk>/<int:isbn13>/', views.MybookWishDeleteiew.as_view(), name='delete'),
 ]
