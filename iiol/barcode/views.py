@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.forms.models import model_to_dict
 from books.serializers import BookSerializer
 from library.serializers import LibrarySerializer
+from .serializers import BarcodeSerializer
 import cv2
 import numpy as np
 import json
@@ -42,6 +43,23 @@ class BarcodeView(APIView):
     request = None
 
     def response_with_type(self, code, msg, RESTCode=200):
+        msg = "" if msg == None else msg
+        user= self.request.user.pk if self.request.user.is_authenticated else None
+        input_data = {'isbn13': self.ISBN,
+                      'small_region_code': self.region_code,
+                      'statusCode': code,
+                      'statusMsg' : msg,
+                      'user' : user
+                      }
+        serializer = BarcodeSerializer(data=input_data)
+
+        if serializer.is_valid():
+            saved = serializer.save()
+            self.return_json['status']['searchPk'] = saved.pk
+        else:
+            code = "E"
+            msg = serializer.errors
+
         self.set_JSON_header(code, msg)
         if self.response_type == "json":
             return JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={'ensure_ascii': False})
@@ -219,7 +237,7 @@ def get_region_json_with_cache():
     return region_json
 
 
-# @ cache_page(60, key_prefix='barcode:html')
+@ cache_page(60, key_prefix='barcode:html')
 def detect_page(request):
     region_json=get_region_json_with_cache()
     return render(request, 'barcode/detect.html', {

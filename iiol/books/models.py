@@ -15,3 +15,6 @@ class Book(BaseTimeModel):
     publication_year = models.CharField(max_length=20, blank=True)
     bookImageURL = models.URLField(blank=True)
     description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f'({self.isbn13}) {self.bookname}'

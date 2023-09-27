@@ -3,5 +3,6 @@ from .models import Book
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ['isbn13', 'bookname']
+    list_display = ['isbn13', 'bookname', 'authors']
 

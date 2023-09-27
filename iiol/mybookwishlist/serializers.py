@@ -4,7 +4,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from books.models import Book
 from rest_framework.validators import UniqueTogetherValidator
-
+from django.core.cache import cache
+import json
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,11 +33,9 @@ class MybookWishlistSerializer(serializers.ModelSerializer):
         )
     ]
 
-    def validate_isbn13(self, data):
-        if len(isbn13) != 13:
-            raise ValueError('ISBN은 13자리여야합니다.')
-
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['book'] = BookSerializer(instance.isbn13).data
+        ISBN = instance.isbn13 if type(instance) == MybookWishlist else instance['isbn13']
+        BOOKINFO_JSON = cache.get(f'ISBN13_{ISBN.isbn13}')
+        response['book'] = json.loads(BOOKINFO_JSON)[0] if BOOKINFO_JSON is not None else BookSerializer(ISBN).data
         return response

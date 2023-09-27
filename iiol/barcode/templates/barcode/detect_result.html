@@ -8,10 +8,12 @@
         <div class="card-header">
             <div><h2>ISBN : {{ request_data.ISBN }} </h2> </div>
             <div id="region_code">{{request_data.region_code }}</div>
-            {% if status.code == "S" and status.msg != None %}
-                <div id="I_feeling_lucky">{{status.msg}}</div>
+            {% if status.code == "S" %}
+                {% if status.msg != None %}
+                    <div id="I_feeling_lucky">{{status.msg}}</div>
+                {% endif %}
+                <button id='add-to-mybookwishlist'> 내 WishbookList에 추가</button>
             {% endif %}
-            <button>내 WishbookList에 추가</button>
         </div>
         </hr>
             <div class="card-body text-center">
@@ -23,6 +25,60 @@
             </div>
     </div>
 </div>
+
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function add_mybook() {
+        let apiUrl = '{% url 'mybookwishlist:mylist' %}';
+        fetch(apiUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json",
+            },
+            body: JSON.stringify({
+                isbn13: '{{ request_data.ISBN }}',
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+                console.log(data)
+                // HTTP 상태 코드 확인
+                if (data.status.code == "S"){
+                    alert("추가했습니다!");
+                }
+                if (data.status.code == "E") {
+                    if (data.status.msg.non_field_errors != null){
+                        alert("이미 추가되었습니다.");
+                    }
+                    throw new Error(JSON.stringify(data.status.msg));
+                }
+                console.log(data);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+
+    document.getElementById('add-to-mybookwishlist').addEventListener('click', add_mybook);
+</script>
 
 <script>
     let apiUrl = '{% url 'barcode:region_code' %}';

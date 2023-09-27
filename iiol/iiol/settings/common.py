@@ -159,7 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-FORCE_SCRIPT_NAME = '/dev'
+FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
 STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
 # STATIC_URL = '/static/'
 STATICFILES_DIRS = [
