@@ -12,3 +12,5 @@ class MybookWishlist(BaseTimeModel):
     readYn = models.BooleanField(default=False)
     class Meta:
         unique_together = ('user', 'isbn13')
+    def __str__(self):
+        return f'{self.user}/{self.isbn13.isbn13}  | {self.isbn13.bookname} | {self.memo}'

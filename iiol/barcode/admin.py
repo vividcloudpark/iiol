@@ -3,5 +3,5 @@ from .models import Barcode
 
 @admin.register(Barcode)
 class BarcodeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['statusCode', 'isbn13', 'created_at', 'user']
 
