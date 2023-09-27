@@ -17,7 +17,7 @@
         </div>
         </hr>
             <div class="card-body text-center">
-            {% if status.code == "S" %}
+            {% if status.code != "E" %}
                 {% include "barcode/detect_result_success.html" with result_data=result_data %}
             {% else %}
                 {{ status.msg }}

@@ -57,7 +57,7 @@ class BarcodeView(APIView):
             saved = serializer.save()
             self.return_json['status']['searchPk'] = saved.pk
         else:
-            code = "E"
+            code = "W"
             msg = serializer.errors
 
         self.set_JSON_header(code, msg)
@@ -70,7 +70,10 @@ class BarcodeView(APIView):
         
     def set_JSON_header(self, code, msg):
         self.return_json["status"]["code"] = code
-        self.return_json["status"]["msg"] = msg
+        if code is "S":
+            self.return_json["status"]["msg"] = msg
+        else:
+            self.return_json["status"]["msg"] = self.return_json["status"]["msg"] + msg
 
     def post(self, request, *args, **kwargs):
         self.request = request
@@ -158,9 +161,8 @@ class BarcodeView(APIView):
                 if serializer.is_valid():
                     serializer.save()
                 else:
-                    print(serializer.errors)
+                    self.set_JSON_header("W", serializer.errors)
 
-      
         else:
             self.LIBRARY_INFO_JSON = json.loads(LIBRARY_INFO_JSON)
         self.libcode_list = list(self.LIBRARY_INFO_JSON.keys())
@@ -193,6 +195,8 @@ class BarcodeView(APIView):
                     serializer=BookSerializer(data=self.BOOKINFO_JSON[0])
                     if serializer.is_valid():
                         serializer.save()
+                    else:
+                        self.set_JSON_header("W", serializer.errors) #Serializer 오류시 logging을 위함
                     msg = "축하합니다! IIOL에서 이 책을 처음 검색하였습니다!"
                 except:
                     return False, book_response
