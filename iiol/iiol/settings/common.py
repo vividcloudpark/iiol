@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     # Third Apps
     'django_bootstrap5',
     'debug_toolbar',
-    'easy_thumbnails',
+    'drf_yasg',
     # Myapps
     'iiol',
     'accounts',
