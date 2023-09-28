@@ -15,5 +15,8 @@ class Barcode(BaseTimeModel):
     isbn13 = models.CharField(max_length=13)
     statusCode = models.CharField(max_length=1, blank=False)
     statusMsg = models.TextField(blank=True)
-    user = models.BigIntegerField( blank=True, null=True)
+    user = models.BigIntegerField(blank=True, null=True)
+    client = models.CharField(max_length=20, blank=True)
+    ipaddress = models.GenericIPAddressField(default="127.0.0.1",
+                                             protocol="both", unpack_ipv4=False)
     # UUID만들어서 각 여정별 트래킹?
