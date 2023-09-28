@@ -42,14 +42,26 @@ class BarcodeView(APIView):
     response_type = "render"
     request = None
 
+    def get_ipaddress(self):
+        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = self.request.META.get('REMOTE_ADDR')
+        return ip
+
+
     def response_with_type(self, code, msg, RESTCode=200):
         msg = "" if msg == None else msg
         user= self.request.user.pk if self.request.user.is_authenticated else None
+
         input_data = {'isbn13': self.ISBN,
                       'small_region_code': self.region_code,
                       'statusCode': code,
                       'statusMsg' : msg,
-                      'user' : user
+                      'user' : user,
+                      'client' : settings.FORCE_SCRIPT_NAME,
+                      'ipaddress' : self.get_ipaddress()
                       }
         serializer = BarcodeSerializer(data=input_data)
 
@@ -70,10 +82,10 @@ class BarcodeView(APIView):
         
     def set_JSON_header(self, code, msg):
         self.return_json["status"]["code"] = code
-        if code is "S":
+        if code == "S":
             self.return_json["status"]["msg"] = msg
         else:
-            self.return_json["status"]["msg"] = self.return_json["status"]["msg"] + msg
+            self.return_json["status"]["msg"] = self.return_json["status"]["msg"] + str(msg)
 
     def post(self, request, *args, **kwargs):
         self.request = request
