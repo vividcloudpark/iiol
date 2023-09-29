@@ -1,4 +1,4 @@
-static/
+.static_root/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
