@@ -176,7 +176,7 @@ STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'iiol', 'static'),
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, '.static_root')
 #
 MEDIA_URL = f'/{FORCE_SCRIPT_NAME}/media/'
 # MEDIA_URL = '/media/'
