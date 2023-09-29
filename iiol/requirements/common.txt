@@ -21,3 +21,6 @@ psycopg2-binary
 django-redis
 redis
 celery
+
+#swagger
+drf-yasg

@@ -2,6 +2,8 @@
 
 {% load static %}
 {% load django_bootstrap5 %}
+{%  bootstrap_css %}
+{%  bootstrap_javascript %}
 
 {% block content %}
 
@@ -70,9 +72,6 @@
             </form>
         </div>
 </div>
-
-{% comment %} <script src="{% static 'js/barcode/resize_photo.js' %}"></script> {% endcomment %}
-{% comment %} <script src="{% static 'js/barcode/html5-qrcode.min.js' %}"></script> {% endcomment %}
 
  <script>
         // 도서관 대분류, 중분류 

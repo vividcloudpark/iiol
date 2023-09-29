@@ -19,6 +19,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 import barcode.views as barcode_view
 
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+
 urlpatterns = [
     path('', barcode_view.detect_page),
     path('admin/', admin.site.urls),
@@ -29,6 +34,29 @@ urlpatterns = [
     path('books/', include('books.urls')),
     path('mybookwishlist/', include('mybookwishlist.urls')),
 ]
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="IIOL API",
+        default_version='v1',
+        description="IIOL을 API에 대한 설명입니다. ",
+        terms_of_service="https://github.com/vividcloudpark/iiol",
+        contact=openapi.Contact(email="vividxenon@gmail.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns += [
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0),
+         name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger',
+                                         cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc',
+                                       cache_timeout=0), name='schema-redoc'),
+]
+
 urlpatterns += static(settings.MEDIA_URL,
                       document_root=settings.MEDIA_ROOT)
 urlpatterns += static('static/',
