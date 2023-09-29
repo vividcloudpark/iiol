@@ -72,10 +72,15 @@ ROOT_URLCONF = 'iiol.urls'
 
 CACHE_TTL = 60 * 60 * 24  # 24h
 
+if os.environ.get('MY_URL_PREFIX') == '/dev-internal':
+    redis_location = 'redis://thecloudpark.xyz:16379'
+else:
+    redis_location = 'redis://192.168.0.10:6379'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://192.168.0.10:6379',
+        'LOCATION': redis_location,
         'KEY_PREFIX': 'D_CACHE',
     },
 }
@@ -106,6 +111,12 @@ WSGI_APPLICATION = 'iiol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+if os.environ.get('MY_URL_PREFIX') == '/dev-internal':
+    DB_HOST = 'thecloudpark.xyz'
+    DB_PORT = '15432'
+else:
+    DB_HOST = '192.168.0.10'
+    DB_PORT = '5432'
 
 DATABASES = {
     # 'default': {
@@ -117,8 +128,8 @@ DATABASES = {
         'NAME': 'iiol',
         'USER': 'django_user',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': '192.168.0.10',
-        'PORT': '5432',
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 

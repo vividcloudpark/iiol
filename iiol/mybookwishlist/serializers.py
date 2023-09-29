@@ -22,11 +22,12 @@ class BookSerializer(serializers.ModelSerializer):
 
 class MybookWishlistSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='user.username')
+    created_at  = serializers.ReadOnlyField()
 
     class Meta:
         model = MybookWishlist
-        fields = ('user',  'author_username', 'isbn13',
-                  'input_context', 'memo')
+        fields = ('user',  'author_username', 'isbn13', 'readYn', 'readDate',
+                  'input_context', 'memo', 'DELETED', 'created_at')
     validaters = [
         UniqueTogetherValidator(
             queryset=MybookWishlist.objects.all(),
@@ -39,6 +40,5 @@ class MybookWishlistSerializer(serializers.ModelSerializer):
         ISBN = instance.isbn13 if type(
             instance) == MybookWishlist else instance['isbn13']
         BOOKINFO_JSON = cache.get(f'ISBN13_{ISBN.isbn13}')
-        response['book'] = json.loads(BOOKINFO_JSON)[
-            0] if BOOKINFO_JSON is not None else BookSerializer(ISBN).data
+        response['book'] = json.loads(BOOKINFO_JSON)[0] if BOOKINFO_JSON is not None else BookSerializer(ISBN).data
         return response

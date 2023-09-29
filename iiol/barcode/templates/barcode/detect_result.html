@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
+{%  bootstrap_css %}
+{%  bootstrap_javascript %}
 {% load static %}
 
 {% block content %}
@@ -10,9 +12,9 @@
             <div id="region_code">{{request_data.region_code }}</div>
             {% if status.code == "S" %}
                 {% if status.msg != None %}
-                    <div id="I_feeling_lucky">{{status.msg}}</div>
+                    <span class="badge badge-info" id="I_feeling_lucky">{{status.msg}}</span>
                 {% endif %}
-                <button id='add-to-mybookwishlist'> 내 WishbookList에 추가</button>
+                <button type="button" class="btn btn-dark" id='add-to-mybookwishlist'> 내 WishbookList에 추가</button>
             {% endif %}
         </div>
         </hr>
@@ -25,24 +27,8 @@
             </div>
     </div>
 </div>
-
+<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
 <script>
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     function add_mybook() {
         let apiUrl = '{% url 'mybookwishlist:mylist' %}';
         fetch(apiUrl, {

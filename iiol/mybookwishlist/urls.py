@@ -1,16 +1,26 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from rest_framework.urlpatterns import format_suffix_patterns
 from django.conf import settings
 from django.conf.urls.static import static
 
 app_name = 'mybookwishlist'
 
 router = DefaultRouter()
-router.register(r'mylist', views.MybookWishListView)
+router.register(r'mylist', views.MybookWishListViewSet, )
+
+mybookwishlist_list = views.MybookWishListViewSet.as_view({
+    'get': 'list',
+    'post': 'create',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+
 
 urlpatterns = [
-    path('', views.MybookWishListView.as_view(), name='mybookwishlist_root'),
-    path('mylist/', views.MybookWishListView.as_view(), name='mylist'),
-    # path('delete/<int:userpk>/<int:isbn13>/', views.MybookWishDeleteiew.as_view(), name='delete'),
+    path('', include(router.urls), name='mybookwishlist_root'),
+    path('mylist/', mybookwishlist_list, name='mylist'),
+
 ]
+

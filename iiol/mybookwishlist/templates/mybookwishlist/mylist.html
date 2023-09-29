@@ -6,10 +6,30 @@
 <div class="container">
     <div class="card mt-5">
 {% if status.code != "E" %}
-{% for mybookwish in result_data %}
-        <div class="card">
+    {% if status.msg != None %}
+        <div>{{ status.msg }}</div>
+        <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
+    {% endif %}
+
+    {% for mybookwish in result_data %}
+        {% if mybookwish.readYn == True %}
+            <div id ={{ mybookwish.isbn13 }} class="card" style="opacity: 50%;">
+        {% else %}
+            <div id ={{ mybookwish.isbn13 }} class="card">
+        {% endif %}
             <div class="card-header">
-                {{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )
+{#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
+{#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
+
+                <blockquote class="blockquote text-left">
+                  <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )</p>
+                    {% if mybookwish.readYn == True %}
+                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">읽은 날짜 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime" >{{ mybookwish.readDate}}</cite></footer>
+                    {% else %}
+                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">저장한 시간 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime">{{ mybookwish.created_at}}</cite></footer>
+                    {% endif %}
+
+                </blockquote>
             </div>
             <div class="card-body" style="display :flex; ">
                     <div class="container" style="display :flex;">
@@ -17,20 +37,23 @@
                         <div class="item" style="flex: 1 0 auto;">
                             <div class="input-group">
                               <span class="input-group-text" id="addon-wrapping">WHEN</span>
-                                <input value="""{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="when_it_put" aria-describedby="addon-wrapping">
+                                <input id="{{ mybookwish.isbn13 }}-input_context" value="{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="input_context" aria-describedby="addon-wrapping">
                             </div>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text">MEMO</span>
-                                <textarea class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
+                                <textarea id="{{ mybookwish.isbn13 }}-memo" class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
                             </div>
                             <div class="input-group mb-3">
                                 <span class="input-group-text">읽었어요!</span>
                                 <div class="input-group-text">
-                                     <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+                                    {% if mybookwish.readYn %}
+                                        <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input" checked>
+                                    {% else %}
+                                        <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
+                                    {% endif %}
                                 </div>
-                                <textarea class="form-control" aria-label="After-Read">소감은?</textarea>
-                                 <button class="btn btn-outline-secondary" type="button">저장하기</button>
-                                 <button class="btn btn-outline-secondary" type="button">삭제하기</button>
+                                <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장하기</button>
+                                <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제하기</button>
                             </div>
                         </div>
                     </div>
@@ -40,8 +63,110 @@
 {% else %}
     {{ status.msg }}
 {% endif %}
-
     </div>
 </div>
+
+<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // "저장하기" 버튼을 클릭할 때 실행되는 함수
+        document.querySelectorAll('.save-button').forEach(button => {
+            button.addEventListener('click', () => {
+                update(button)
+            });
+        });
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', () => {
+                destroy(button)
+            });
+        });
+    });
+
+
+    function update(button){
+        const isbn13 = button.dataset.bookId;
+        const inputContext = document.getElementById(`${isbn13}-input_context`).value;
+        const memo = document.getElementById(`${isbn13}-memo`).value;
+        const readYn = document.getElementById(`${isbn13}-readYn`).checked;
+
+        // AJAX 요청을 사용하여 서버로 데이터를 전송하고 저장하는 작업 수행
+        // 이 부분은 서버 측 뷰와 연결해야 합니다.
+        const base_url = "{% url 'mybookwishlist:mylist' %}";
+        fetch(`${base_url}${isbn13}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                isbn13: isbn13,
+                input_context: inputContext,
+                memo: memo,
+                readYn: readYn,
+            }),
+        })
+       .then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    if (data.status.code === 'S') {
+                        console.log('도서 정보가 성공적으로 저장되었습니다.');
+                        console.log(data);
+                        document.getElementById(isbn13).style.opacity = readYn ? '0.5' : '1';
+                        document.getElementById(`${isbn13}-footer`).innerText  = readYn ? `읽은 날짜 : ${data.result_data.readDate}` : `저장한 시간: ${Date(data.result_data.created_at)})`;
+                        alert('도서 정보가 성공적으로 저장되었습니다.');
+                    } else {
+                        console.error('도서 정보 저장 중 오류가 발생했습니다.');
+                        // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
+                    }
+                });
+            } else {
+                console.error('도서 정보 저장 중 오류가 발생했습니다.');
+                // response.ok가 false인 경우에 대한 오류 처리를 수행할 수 있습니다.
+            }
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+        });
+    }
+
+     function destroy(button){
+        const isbn13 = button.dataset.bookId;
+        const base_url = "{% url 'mybookwishlist:mylist' %}";
+        fetch(`${base_url}${isbn13}/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                isbn13: isbn13,
+                DELETED: true
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status.code === 'S') {
+                console.log('도서 정보가 성공적으로 삭제되었습니다.');
+                document.getElementById(isbn13).remove();
+            } else {
+                console.error('도서 정보 저장 중 오류가 발생했습니다.');
+                // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
+            }
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+        });
+    }
+
+
+</script>
+
 
 {% endblock content %}
