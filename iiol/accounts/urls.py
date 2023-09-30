@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from mybookwishlist import views as mybookwishlist_view
 
 app_name = 'accounts'
 

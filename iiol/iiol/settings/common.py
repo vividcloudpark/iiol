@@ -135,6 +135,21 @@ DATABASES = {
 
 AUTH_USER_MODEL = "accounts.User"
 
+REST_FRAMEWORK = {
+	'PAGE_SIZE' : 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'DEFAULT_PERMISSION_CLASSES' : [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
+    'DEFAULT_THROTTLE_CLASSES' : [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES' : {
+        'anon' : '100/hour',
+        'user' : '3/sec',
+    }
+}
+
 INTERNAL_IPS = ['127.0.0.1']
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
