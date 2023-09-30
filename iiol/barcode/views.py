@@ -1,15 +1,12 @@
 from rest_framework.views import APIView
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Barcode
 from library.models import Library, SmallRegion, BigRegion
 from books.models import Book
-from .serializers import BarcodeSerializer
 from django.conf import settings
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
-from django.utils import timezone
-from django.forms.models import model_to_dict
 from books.serializers import BookSerializer
 from library.serializers import LibrarySerializer
 from .serializers import BarcodeSerializer
@@ -17,17 +14,17 @@ import cv2
 import numpy as np
 import json
 import os
-import io
-from PIL import Image
 from datetime import datetime, timedelta
 from utils.library_api import LibraryApi
-
+from rest_framework.permissions import AllowAny
+from rest_framework.throttling import AnonRateThrottle
 from .tasks import save_book_on_DB
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL')
 
 
 class BarcodeView(APIView):
+    permission_classes = [AllowAny]
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
     # parser_classes = (MultiPartParser, FormParser)

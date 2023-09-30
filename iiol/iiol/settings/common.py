@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import os
 from os.path import abspath, dirname
@@ -42,8 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'rest_framework',
-    # Third Apps
+    'rest_framework',    # Third Apps
+    'rest_framework_simplejwt',
     'django_bootstrap5',
     'debug_toolbar',
     'drf_yasg',
@@ -134,6 +135,32 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = "accounts.User"
+
+REST_FRAMEWORK = {
+	'PAGE_SIZE' : 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PERMISSION_CLASSES' : [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
+    ],
+    'DEFAULT_THROTTLE_CLASSES' : [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES' : {
+        'anon' : '100/hour',
+        'user' : '3/sec',
+    }
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 INTERNAL_IPS = ['127.0.0.1']
 # Password validation
