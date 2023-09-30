@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'rest_framework',    # Third Apps
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'django_bootstrap5',
     'debug_toolbar',
     'drf_yasg',
@@ -141,9 +141,12 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES' : [
     #     'rest_framework.permissions.IsAuthenticated',
     # ],
+    'DEFAULT_PERMISSION_CLASSES' : [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
     'DEFAULT_THROTTLE_CLASSES' : [
         'rest_framework.throttling.AnonRateThrottle',
@@ -152,6 +155,13 @@ REST_FRAMEWORK = {
         'anon' : '100/hour',
         'user' : '3/sec',
     }
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 INTERNAL_IPS = ['127.0.0.1']

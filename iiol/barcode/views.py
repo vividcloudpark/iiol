@@ -16,6 +16,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from utils.library_api import LibraryApi
+from rest_framework.permissions import AllowAny
 from rest_framework.throttling import AnonRateThrottle
 from .tasks import save_book_on_DB
 
@@ -23,6 +24,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL')
 
 
 class BarcodeView(APIView):
+    permission_classes = [AllowAny]
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
     # parser_classes = (MultiPartParser, FormParser)

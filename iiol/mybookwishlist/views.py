@@ -1,9 +1,8 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
-from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import MybookWishlist
 from .serializers import MybookWishlistSerializer, UserSerializer
 from rest_framework.response import Response  
@@ -18,11 +17,11 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class TokenLoginRequiredMixin(LoginRequiredMixin):
+class JWTLoginRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         """If token was provided, ignore authenticated status."""
         http_auth = request.META.get("HTTP_AUTHORIZATION")
-        if http_auth and "Token" in http_auth:
+        if http_auth and "Bearer" in http_auth:
             pass
 
         elif not request.user.is_authenticated:
@@ -31,12 +30,12 @@ class TokenLoginRequiredMixin(LoginRequiredMixin):
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
-class MybookWishListViewSet(TokenLoginRequiredMixin, viewsets.ViewSet):
+class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
     basename = 'mylist'
     login_url = f'{settings.FORCE_SCRIPT_NAME}/accounts/login'
     authentication_classes = [
         SessionAuthentication,
-        TokenAuthentication,
+        JWTAuthentication,
         ]
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]

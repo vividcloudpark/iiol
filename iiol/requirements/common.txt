@@ -3,6 +3,7 @@ django-bootstrap5
 pillow
 easy-thumbnails
 djangorestframework
+djangorestframework-simplejwt~=5.3.0
 markdown
 django-filter 
 python-dotenv
