@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'rest_framework',
-    # Third Apps
+    'rest_framework',    # Third Apps
+    'rest_framework.authtoken',
     'django_bootstrap5',
     'debug_toolbar',
     'drf_yasg',
@@ -141,6 +141,10 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES' : [
     #     'rest_framework.permissions.IsAuthenticated',
     # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     'DEFAULT_THROTTLE_CLASSES' : [
         'rest_framework.throttling.AnonRateThrottle',
     ],

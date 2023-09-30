@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,10 +18,26 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class TokenLoginRequiredMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        """If token was provided, ignore authenticated status."""
+        http_auth = request.META.get("HTTP_AUTHORIZATION")
+        if http_auth and "Token" in http_auth:
+            pass
 
-class MybookWishListViewSet(LoginRequiredMixin, viewsets.ViewSet):
+        elif not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        return super(LoginRequiredMixin, self).dispatch(
+            request, *args, **kwargs)
+
+class MybookWishListViewSet(TokenLoginRequiredMixin, viewsets.ViewSet):
     basename = 'mylist'
     login_url = f'{settings.FORCE_SCRIPT_NAME}/accounts/login'
+    authentication_classes = [
+        SessionAuthentication,
+        TokenAuthentication,
+        ]
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['bookname', 'isbn13']
