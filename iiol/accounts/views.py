@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from django.urls import reverse, resolve
 
 from .forms import SignupForm, ProfileForm
-from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import login as auth_login, authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import (
     LoginView, logout_then_login, PasswordChangeView as AuthPasswordChangeView)
@@ -92,6 +92,7 @@ class LoginView(APIView):
         elif not user.is_active:
             return self.response_with_type('E', "이 유저는 현재 활성화 상태가 아닙니다 .", RESTCode=status.HTTP_404_NOT_FOUND)
         JWT_data = get_tokens_for_user(user)
+        login(request, user)
         return self.response_with_type('S', "로그인에 성공하였습니다!", JWT_data=JWT_data)
 
 def logout(request):
