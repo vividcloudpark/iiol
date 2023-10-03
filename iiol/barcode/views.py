@@ -78,7 +78,9 @@ class BarcodeView(APIView):
                 })
         
     def set_JSON_header(self, code, msg):
-        self.return_json["status"]["code"] = code
+        if self.return_json["status"]["code"] == "" or code == "W": #W로 에러상태를 이미 저장헀을때 반영
+            self.return_json["status"]["code"] = code
+
         if code == "S":
             self.return_json["status"]["msg"] = msg
         else:
@@ -205,6 +207,7 @@ class BarcodeView(APIView):
                     if serializer.is_valid():
                         serializer.save()
                     else:
+                        print(serializer.errors)
                         self.set_JSON_header("W", serializer.errors) #Serializer 오류시 logging을 위함
                     msg = "축하합니다! IIOL에서 이 책을 처음 검색하였습니다!"
                 except:
@@ -212,8 +215,6 @@ class BarcodeView(APIView):
         return True, msg
                     
 
-                
-        
 
     def get_book_availablity_by_libcode(self):
         for libcode in self.libcode_list:
@@ -243,14 +244,14 @@ class BarcodeView(APIView):
 def get_region_json_with_cache():
     region_json=cache.get('region_json')
     if region_json is None:
-        file_path=os.path.join(settings.STATIC_ROOT, 'barcode/json/region_code.json')
+        file_path=os.path.join(settings.STATIC_ROOT, 'json/region_code.json')
         with open(file_path, 'r', encoding='utf-8') as f:
             region_json=json.load(f)
         cache.set('region_json', region_json, CACHE_TTL)
     return region_json
 
 
-@ cache_page(60, key_prefix='barcode:html')
+# @ cache_page(60, key_prefix='barcode:html')
 def detect_page(request):
     region_json=get_region_json_with_cache()
     return render(request, 'barcode/detect.html', {

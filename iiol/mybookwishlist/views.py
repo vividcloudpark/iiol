@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import SessionAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from iiol.authentication import JWTCookieAuthentication
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 from .models import MybookWishlist
@@ -24,6 +25,9 @@ class JWTLoginRequiredMixin(LoginRequiredMixin):
         if http_auth and "Bearer" in http_auth:
             pass
 
+        elif request.COOKIES.get("access_token"):
+            pass
+
         elif not request.user.is_authenticated:
             return self.handle_no_permission()
 
@@ -35,6 +39,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
     login_url = f'{settings.FORCE_SCRIPT_NAME}/accounts/login'
     authentication_classes = [
         SessionAuthentication,
+        JWTCookieAuthentication,
         JWTAuthentication,
         ]
     permission_classes = [IsAuthenticated]
@@ -65,8 +70,8 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
         self.request = request
         # if request.accepts('application/json'):
         #     self.response_type = 'json'
-        qs = MybookWishlist.objects\
-            .filter(user=request.user, DELETED=False).order_by("-updated_at")
+        qs = MybookWishlist.objects.all()\
+            .filter(user=request.user.pk, DELETED=False).order_by("-updated_at").select_related("isbn13")
         if not qs:
             return self.response_with_type('S', '앗, 아직 저장하신 데이터가 없는것 같은데요...', RESTCode=status.HTTP_204_NO_CONTENT)
         serializer = MybookWishlistSerializer(qs, many=True)

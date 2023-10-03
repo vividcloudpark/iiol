@@ -283,6 +283,6 @@ for code in codelist:
     small_region_dict[big_region_code][code] = small_region
 codedict = {'big': big_region_dict, 'small': small_region_dict}
 
-with open(r'../barcode/static/barcode/json/region_code.json', 'w', encoding='utf-8') as make_file:
+with open(r'../iiol/static/json/region_code.json', 'w', encoding='utf-8') as make_file:
     json.dump(codedict, make_file, indent=4, ensure_ascii=False)
     print(json.dumps(codedict, indent=4, ensure_ascii=False))
