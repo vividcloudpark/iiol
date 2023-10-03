@@ -49,9 +49,10 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
     redirect_filed_name = 'redirect_to'
     queryset = MybookWishlist.objects.all()
     serializer_class = MybookWishlistSerializer
-    return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
+    return_json = None
     response_type = "render"
     request = None
+
 
     def response_with_type(self, code, msg, RESTCode=200):
         self.set_JSON_header(code, msg)
@@ -68,6 +69,8 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def list(self, request):
         self.request = request
+        self.return_json = None
+        self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
         # if request.accepts('application/json'):
         #     self.response_type = 'json'
         qs = MybookWishlist.objects.all()\
@@ -80,6 +83,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def create(self, request):
         self.request = request
+        self.return_json = None
         self.response_type = 'json'
 
         request.data['user'] = request.user.pk
@@ -92,6 +96,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
             return self.response_with_type('E', serializer.errors, RESTCode=status.HTTP_400_BAD_REQUEST)
     def partial_update(self, request, pk):
         self.request = request
+        self.return_json = None
         self.response_type = 'json'
         try:
             item = MybookWishlist.objects.get(isbn13=pk, user=request.user.pk, DELETED=False)
@@ -112,6 +117,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def destroy(self, request, pk):
         self.request = request
+        self.return_json = None
         self.response_type = 'json'
         try:
             item = MybookWishlist.objects.get(isbn13=pk, user=request.user.pk, DELETED=False)
