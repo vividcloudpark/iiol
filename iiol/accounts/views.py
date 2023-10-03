@@ -21,12 +21,15 @@ from django.middleware import csrf
 from rest_framework_simplejwt.views import token_verify
 
 # login = LoginView.as_view(template_name="accounts/login_form.html")
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
 
 def verify_access_token(token):
     try:
@@ -36,27 +39,34 @@ def verify_access_token(token):
     except Exception as e:
         return False
 
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = [] #인증 안함을 명시적으로 밝힘.
+    authentication_classes = []  # 인증 안함을 명시적으로 밝힘.
     template_name = "accounts/login_form.html"
     return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
     response_type = "render"
     response = None
     request = None
+
     def set_JSON_header(self, code, msg):
         self.return_json["status"]["code"] = code
         self.return_json["status"]["msg"] = msg
+
     def response_with_type(self, code, msg, RESTCode=200, JWT_data=None):
         self.set_JSON_header(code, msg)
         self.return_json['result_data']['JWT'] = JWT_data
         # self.response_type = 'json'
         if self.response_type == "json":
-            response = JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={'ensure_ascii': False})
+            response = JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={
+                                    'ensure_ascii': False})
         elif self.request.GET.get('next') or self.request.POST.get('next'):
-            next_url = self.request.GET.get('next') if self.request.GET.get('next') is not None else self.request.POST.get('next')
+            next_url = self.request.GET.get('next') if self.request.GET.get(
+                'next') is not None else self.request.POST.get('next')
+            next_url = next_url.replace(settings.FORCE_SCRIPT_NAME, "")
             resolved_url = resolve(next_url)
-            response = redirect(f'{resolved_url.app_names[0]}:{resolved_url.url_name}')
+            response = redirect(
+                f'{resolved_url.app_names[0]}:{resolved_url.url_name}')
         else:
             response = redirect('mybookwishlist:mylist')
 
@@ -71,15 +81,17 @@ class LoginView(APIView):
                 samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
             )
         return response
+
     def get(self, request, format=None):
         self.request = request
         token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
-        if (token is not None ) and (verify_access_token(token)):
+        if (token is not None) and (verify_access_token(token)):
             return self.response_with_type('S', "이미 로그인 되어있었습니다!")
 
         return render(request=request, template_name="accounts/login_form.html", context={
-            'form' : AuthenticationForm,
+            'form': AuthenticationForm,
         })
+
     def post(self, request, format=None):
         self.request = request
         data = request.data
@@ -95,12 +107,15 @@ class LoginView(APIView):
         login(request, user)
         return self.response_with_type('S', "로그인에 성공하였습니다!", JWT_data=JWT_data)
 
+
 def logout(request):
     messages.success(request, "로그아웃 되었습니다!")
-    response = logout_then_login(request, login_url=f'{settings.FORCE_SCRIPT_NAME}/accounts/login',)
+    response = logout_then_login(
+        request, login_url=f'{settings.FORCE_SCRIPT_NAME}/accounts/login',)
     for cookie in request.COOKIES:
         response.delete_cookie(cookie)
     return response
+
 
 def signup(request):
     if request.method == 'POST':
@@ -137,6 +152,7 @@ def profile_edit(request):
 class PasswordChangeView(LoginRequiredMixin, AuthPasswordChangeView):
     success_url = reverse_lazy('')
     template_name = 'accounts/password_change_form.html'
+
     def form_valid(self):
         messages.success(self.request, "암호를 변경했습니다")
         return super().form_valid(form)
