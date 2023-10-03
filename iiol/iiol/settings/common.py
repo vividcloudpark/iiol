@@ -15,6 +15,8 @@ dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
 FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
+ACCESS_FROM = os.environ.get('ACCESS_FROM')
+print(f"ACCESS  {ACCESS_FROM}, Serviced on Prefix : {FORCE_SCRIPT_NAME}")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -75,7 +77,7 @@ ROOT_URLCONF = 'iiol.urls'
 
 CACHE_TTL = 60 * 60 * 24  # 24h
 
-if os.environ.get('MY_URL_PREFIX') == '/dev-internal':
+if ACCESS_FROM == 'outside':
     redis_location = 'redis://thecloudpark.xyz:16379'
 else:
     redis_location = 'redis://192.168.0.10:6379'
@@ -114,7 +116,7 @@ WSGI_APPLICATION = 'iiol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if os.environ.get('MY_URL_PREFIX') == '/dev-internal':
+if ACCESS_FROM == 'outside':
     DB_HOST = 'thecloudpark.xyz'
     DB_PORT = '15432'
 else:
@@ -153,12 +155,24 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES' : {
-        'anon' : '100/hour',
+        'anon' : '500/hour',
         'user' : '3/sec',
     }
 }
 
+if ACCESS_FROM == 'outside':
+    COOKIE_DOMAIN = None
+else:
+    COOKIE_DOMAIN = 'thecloudpark.xyz'
+
 SIMPLE_JWT = {
+    'AUTH_COOKIE': 'access_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_COOKIE_DOMAIN': COOKIE_DOMAIN,     # A string like "example.com", or None for standard domain cookie.
+    'AUTH_COOKIE_SECURE': True,    # Whether the auth cookies should be secure (https:// only).
+    'AUTH_COOKIE_HTTP_ONLY' : True, # Http only cookie flag.It's not fetch by javascript.
+    'AUTH_COOKIE_PATH': f'{FORCE_SCRIPT_NAME}/accounts/token/',        # The path of the auth cookie.
+    'AUTH_COOKIE_SAMESITE': 'Lax',  # Whether to set the flag restricting cookie leaks on cross-site requests.
+                                    # This can be 'Lax', 'Strict', or None to disable the flag.
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
     'ROTATE_REFRESH_TOKENS': True,
