@@ -25,3 +25,4 @@ celery
 
 #swagger
 drf-yasg
+drf-spectacular

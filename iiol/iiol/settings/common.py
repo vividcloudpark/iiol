@@ -14,6 +14,8 @@ BASE_DIR = dirname(dirname(dirname(abspath(__file__))))
 dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
+FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -144,7 +146,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication'
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'iiol.authentication.JWTCookieAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES' : [
         'rest_framework.throttling.AnonRateThrottle',
@@ -197,7 +200,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
+
 STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
 # STATIC_URL = '/static/'
 STATICFILES_DIRS = [

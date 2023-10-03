@@ -35,25 +35,27 @@
                     <div class="container" style="display :flex;">
                         <div class="item"><img src="{{ mybookwish.book.bookImageURL }}" height="200"></div>
                         <div class="item" style="flex: 1 0 auto;">
-                            <div class="input-group">
-                              <span class="input-group-text" id="addon-wrapping">WHEN</span>
-                                <input id="{{ mybookwish.isbn13 }}-input_context" value="{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="input_context" aria-describedby="addon-wrapping">
-                            </div>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">MEMO</span>
-                                <textarea id="{{ mybookwish.isbn13 }}-memo" class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">읽었어요!</span>
-                                <div class="input-group-text">
-                                    {% if mybookwish.readYn %}
-                                        <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input" checked>
-                                    {% else %}
-                                        <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
-                                    {% endif %}
+                            <div class="container flex-auto">
+                                <div class="input-group col-md-6">
+                                  <span class="input-group-text auto" id="addon-wrapping">WHEN</span>
+                                    <input id="{{ mybookwish.isbn13 }}-input_context" value="{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="input_context" aria-describedby="addon-wrapping">
                                 </div>
-                                <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장하기</button>
-                                <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제하기</button>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">MEMO</span>
+                                    <textarea id="{{ mybookwish.isbn13 }}-memo" class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
+                                </div>
+                                <div class="input-group mb-3 col-md-6">
+                                    <span class="input-group-text">읽었어요!</span>
+                                    <div class="input-group-text">
+                                        {% if mybookwish.readYn %}
+                                            <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input" checked>
+                                        {% else %}
+                                            <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장하기</button>
+                                    <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제하기</button>
+                                </div>
                             </div>
                         </div>
                     </div>

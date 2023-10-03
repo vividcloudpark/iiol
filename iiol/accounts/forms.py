@@ -13,7 +13,7 @@ class SignupForm(UserCreationForm):
         fields = ['username', 'email', 'first_name', 'last_name']
 
     def clean_email(self):
-        email = self.clened_data.get('email')
+        email = self.cleaned_data.get('email')
         if email:
             qs = User.objects.filter(email=email)
             if qs.exists():
