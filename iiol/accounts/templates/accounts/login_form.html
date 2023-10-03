@@ -1,11 +1,17 @@
-{% extends "accounts/layout.html" %}
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{%  bootstrap_css %}
+{%  bootstrap_javascript %}
+
 
 {% block content %}
-<div class="container">
+<div class="container mt-5 mb-5">
     <div class="row">
         <div class="col-sm-6 offset-sm-3">
             {% include "_form.html" with submit_label="로그인" %}
+            <a href="{% url 'accounts:signup' %}"><button class="btn btn-default">회원가입하기</button></a>
         </div>
+
     </div>
 </div>
 

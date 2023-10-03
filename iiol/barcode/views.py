@@ -1,3 +1,5 @@
+from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -14,17 +16,21 @@ import cv2
 import numpy as np
 import json
 import os
-from datetime import datetime, timedelta
 from utils.library_api import LibraryApi
+from utils.general_function import get_ipaddress, get_remain_sec_of_today
 from rest_framework.permissions import AllowAny
 from rest_framework.throttling import AnonRateThrottle
 from .tasks import save_book_on_DB
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL')
 
+EMPTY_ISBN = '0000000000000'
 
 class BarcodeView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = [
+        SessionAuthentication,
+    ]  # 인증 안함을 명시적으로 밝힘.
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
     # parser_classes = (MultiPartParser, FormParser)
@@ -39,18 +45,10 @@ class BarcodeView(APIView):
     response_type = "render"
     request = None
 
-    def get_ipaddress(self):
-        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = self.request.META.get('REMOTE_ADDR')
-        return ip
-
-
-    def response_with_type(self, code, msg, RESTCode=200):
+    def response_with_type(self, code, msg, RESTCode=status.HTTP_200_OK):
         msg = "" if msg == None else msg
         user= self.request.user.pk if self.request.user.is_authenticated else None
+        self.ISBN = EMPTY_ISBN if self.ISBN == None else None
 
         input_data = {'isbn13': self.ISBN,
                       'small_region_code': self.region_code,
@@ -58,7 +56,7 @@ class BarcodeView(APIView):
                       'statusMsg' : msg,
                       'user' : user,
                       'client' : settings.FORCE_SCRIPT_NAME,
-                      'ipaddress' : self.get_ipaddress()
+                      'ipaddress' : get_ipaddress(self.request)
                       }
         serializer = BarcodeSerializer(data=input_data)
 
@@ -75,7 +73,7 @@ class BarcodeView(APIView):
         else:
             return render(self.request, 'barcode/detect_result.html', {
                     **self.return_json,
-                })
+                }, None, RESTCode)
         
     def set_JSON_header(self, code, msg):
         if self.return_json["status"]["code"] == "" or code == "W": #W로 에러상태를 이미 저장헀을때 반영
@@ -97,11 +95,11 @@ class BarcodeView(APIView):
         try:
             if request.POST['region_code']:
                 self.region_code = request.POST['region_code'].strip()
-            if request.POST['ISBN_string']:
+            if request.POST['ISBN_string'] and len(request.POST['ISBN_string']) != 0:
                 self.ISBN = request.POST['ISBN_string'].strip()
                 if len(self.ISBN) != 13:
                     self.response_with_type('E', '13자리의 ISBN을 입력하십시오.', RESTCode=404)
-            elif request.FILES['barcode_photo']:
+            elif 'barcode_photo' in request.FILES:
                 barcode_photo = request.FILES['barcode_photo'].read()
                 img = bytearray(barcode_photo)
                 numbyarray = np.asarray(img, dtype=np.uint8)
@@ -110,13 +108,15 @@ class BarcodeView(APIView):
                     if len(detect__string) == 13:
                         self.ISBN = detect__string
                         break;
+            else:
+                return self.response_with_type('E', '데이터가 입력되지 않았습니다.', RESTCode=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print(e)
-            return self.response_with_type('E', 'ISBN을 추출하던 중 오류가 발생헀습니다. 직접 입력해보십시오.', RESTCode=404)
-            
+            return self.response_with_type('E', 'ISBN을 추출하던 중 오류가 발생헀습니다. 직접 ISBN을 입력해보십시오.', RESTCode=status.HTTP_400_BAD_REQUEST)
 
         if self.ISBN is None:
-            return self.response_with_type('E', 'ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.', RESTCode=404)
+            return self.response_with_type('E', 'ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.', RESTCode=status.HTTP_400_BAD_REQUEST)
             
         else:    
             self.return_json['request_data'] = {'ISBN': self.ISBN, 'region_code': self.region_code}
@@ -124,7 +124,7 @@ class BarcodeView(APIView):
             SUCESS, MSG = self.book_info()
 
             if not SUCESS:
-                return self.response_with_type('E', f'{self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}', RESTCode=404)
+                return self.response_with_type('E', f'{self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}', RESTCode=status.HTTP_404_NOT_FOUND)
                 
                 
             self.return_json['result_data'] ={}
@@ -135,7 +135,7 @@ class BarcodeView(APIView):
             self.return_json['result_data']['library_info'] = self.LIBRARY_INFO_JSON
             
             
-            return self.response_with_type('S', MSG, RESTCode=200)
+            return self.response_with_type('S', MSG, RESTCode=status.HTTP_200_OK)
             
     
 
@@ -231,14 +231,9 @@ class BarcodeView(APIView):
                 book_availablity_cache=(
                     book_availablity['result']['hasBook'], book_availablity['result']['loanAvailable'])
                 cache.set(f'{libcode}_{self.ISBN}',
-                          book_availablity_cache, self.get_remain_sec_of_today())
+                          book_availablity_cache, get_remain_sec_of_today())
         return
 
-    def get_remain_sec_of_today(self):
-        now=datetime.now()
-        midnight=datetime(now.year, now.month, now.day, 23, 59, 59)
-        time_remain=midnight-now
-        return time_remain.total_seconds()
 
 
 def get_region_json_with_cache():

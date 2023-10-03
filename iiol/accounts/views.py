@@ -28,6 +28,14 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
+def verify_access_token(token):
+    try:
+        access_token = AccessToken(token)
+        access_token.verify()
+        return True
+    except Exception as e:
+        return False
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = [] #인증 안함을 명시적으로 밝힘.
@@ -48,10 +56,10 @@ class LoginView(APIView):
         elif self.request.GET.get('next') or self.request.POST.get('next'):
             next_url = self.request.GET.get('next') if self.request.GET.get('next') is not None else self.request.POST.get('next')
             resolved_url = resolve(next_url)
-            url_pattern_name = resolved_url.url_name
-            response = redirect(url_pattern_name)
+            response = redirect(f'{resolved_url.app_names[0]}:{resolved_url.url_name}')
         else:
             response = redirect('mybookwishlist:mylist')
+
         csrf.get_token(self.request)
         if JWT_data is not None:
             response.set_cookie(
@@ -64,6 +72,11 @@ class LoginView(APIView):
             )
         return response
     def get(self, request, format=None):
+        self.request = request
+        token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        if (token is not None ) and (verify_access_token(token)):
+            return self.response_with_type('S', "이미 로그인 되어있었습니다!")
+
         return render(request=request, template_name="accounts/login_form.html", context={
             'form' : AuthenticationForm,
         })
