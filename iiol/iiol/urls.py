@@ -18,13 +18,19 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 import barcode.views as barcode_view
+from . import views as iiol_view
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from django.urls import path, re_path
 
+
+app_name = 'iiol'
+site_prefix = f'^{settings.FORCE_SCRIPT_NAME[1:]}(.*)$'
 
 urlpatterns = [
+    re_path(site_prefix, iiol_view.site_prefix_redirect),
     path('', barcode_view.detect_page),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
@@ -33,6 +39,7 @@ urlpatterns = [
     path('library/', include('library.urls')),
     path('books/', include('books.urls')),
     path('mybookwishlist/', include('mybookwishlist.urls')),
+
 ]
 
 schema_view = get_schema_view(
