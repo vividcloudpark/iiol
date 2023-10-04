@@ -33,7 +33,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz', '192.168.0.2']
+ALLOWED_HOSTS = ['localhost', 'thecloudpark.xyz', '192.168.0.0/16',]
 
 
 # Application definition
@@ -77,15 +77,11 @@ ROOT_URLCONF = 'iiol.urls'
 
 CACHE_TTL = 60 * 60 * 24  # 24h
 
-if ACCESS_FROM == 'outside':
-    redis_location = 'redis://thecloudpark.xyz:16379'
-else:
-    redis_location = 'redis://192.168.0.10:6379'
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': redis_location,
+        'LOCATION': 'redis://db.thecloudpark.xyz:6379',
         'KEY_PREFIX': 'D_CACHE',
     },
 }
@@ -116,12 +112,6 @@ WSGI_APPLICATION = 'iiol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if ACCESS_FROM == 'outside':
-    DB_HOST = 'thecloudpark.xyz'
-    DB_PORT = '15432'
-else:
-    DB_HOST = '192.168.0.10'
-    DB_PORT = '5432'
 
 DATABASES = {
     # 'default': {
@@ -133,8 +123,8 @@ DATABASES = {
         'NAME': 'iiol',
         'USER': 'django_user',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': DB_HOST,
-        'PORT': DB_PORT,
+        'HOST': 'db.thecloudpark.xyz',
+        'PORT': '5432',
     }
 }
 
