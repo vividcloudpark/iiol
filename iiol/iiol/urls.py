@@ -30,7 +30,6 @@ app_name = 'iiol'
 site_prefix = f'^{settings.FORCE_SCRIPT_NAME[1:]}(.*)$'
 
 urlpatterns = [
-    re_path(site_prefix, iiol_view.site_prefix_redirect),
     path('', barcode_view.detect_page),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),

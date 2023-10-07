@@ -14,7 +14,7 @@
                 {% if status.msg != None %}
                     <span class="badge badge-info" id="I_feeling_lucky">{{status.msg}}</span>
                 {% endif %}
-                <button type="button" class="btn btn-dark" id='add-to-mybookwishlist'> 내 WishbookList에 추가</button>
+                <div><button type="button" class="btn btn-dark" id='add-to-mybookwishlist'> 내 WishbookList에 추가</button></div>
             {% endif %}
         </div>
         </hr>
@@ -45,18 +45,12 @@
         })
         .then(response => response.json())
         .then(data => {
-                console.log(data)
-                // HTTP 상태 코드 확인
-                if (data.status.code == "S"){
-                    alert("추가했습니다!");
-                }
-                if (data.status.code == "E") {
-                    if (data.status.msg.non_field_errors != null){
-                        alert("이미 추가되었습니다.");
-                    }
-                    throw new Error(JSON.stringify(data.status.msg));
-                }
-                console.log(data);
+            console.log(data)
+            alert(data.status.msg)
+            // HTTP 상태 코드 확인
+            if (data.status.code == "E") {
+                throw new Error(JSON.stringify(data.status.msg));
+            }
         })
         .catch(error => {
             console.error(error);

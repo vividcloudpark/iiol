@@ -15,8 +15,7 @@ dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
 FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
-ACCESS_FROM = os.environ.get('ACCESS_FROM')
-print(f"ACCESS  {ACCESS_FROM}, Serviced on Prefix : {FORCE_SCRIPT_NAME}")
+print(f"Serviced on Prefix : {FORCE_SCRIPT_NAME}")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -137,9 +136,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'iiol.authentication.JWTCookieAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'iiol.authentication.JWTCookieAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES' : [
         'rest_framework.throttling.AnonRateThrottle',
@@ -150,14 +149,9 @@ REST_FRAMEWORK = {
     }
 }
 
-if ACCESS_FROM == 'outside':
-    COOKIE_DOMAIN = None
-else:
-    COOKIE_DOMAIN = 'thecloudpark.xyz'
-
 SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',  # Cookie name. Enables cookies if value is set.
-    'AUTH_COOKIE_DOMAIN': COOKIE_DOMAIN,     # A string like "example.com", or None for standard domain cookie.
+    'AUTH_COOKIE_DOMAIN': 'thecloudpark.xyz',     # A string like "example.com", or None for standard domain cookie.
     'AUTH_COOKIE_SECURE': True,    # Whether the auth cookies should be secure (https:// only).
     'AUTH_COOKIE_HTTP_ONLY' : True, # Http only cookie flag.It's not fetch by javascript.
     'AUTH_COOKIE_PATH': f'{FORCE_SCRIPT_NAME}/accounts/token/',        # The path of the auth cookie.
@@ -222,7 +216,7 @@ CSRF_TRUSTED_ORIGINS = ['https://thecloudpark.xyz']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = f'{FORCE_SCRIPT_NAME}/mybookwishlist/mylist'
-
+LOGIN_URL = f'{FORCE_SCRIPT_NAME}/accounts/login'
 CELERY_ALWAYS_EAGER = True
 CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
