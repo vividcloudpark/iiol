@@ -1,3 +1,6 @@
+from django.views.decorators.csrf import csrf_exempt
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, OpenApiExample
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
@@ -45,6 +48,7 @@ class BarcodeView(APIView):
     response_type = "render"
     request = None
 
+
     def response_with_type(self, code, msg, RESTCode=status.HTTP_200_OK):
         msg = "" if msg == None else msg
         user= self.request.user.pk if self.request.user.is_authenticated else None
@@ -69,7 +73,7 @@ class BarcodeView(APIView):
             msg = serializer.errors
 
         self.set_JSON_header(code, msg)
-        if self.response_type == "json":
+        if self.request.content_type == 'application/json':
             return JsonResponse(data=self.return_json, status=RESTCode, json_dumps_params={'ensure_ascii': False})
         else:
             return render(self.request, 'barcode/detect_result.html', {
@@ -85,21 +89,145 @@ class BarcodeView(APIView):
         else:
             self.return_json["status"]["msg"] = self.return_json["status"]["msg"] + str(msg)
 
+
+    @extend_schema(
+        tags=['barcode'],
+        summary="ISBN13을 기반으로 한 바코드검색",
+        parameters=[
+            OpenApiParameter(
+                name="small_region_code",
+                type=str,
+                description="5자리의 도서관 지역코드",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="isbn13",
+                type=str,
+                description="13자리의 ISBN13 바코드. 사진이 있을경우 생략가능",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="barcode_photo",
+                type=bytes,
+                description="바코드 사진. 최대 10MB 제한",
+                required=False,
+            )
+        ],
+        responses={
+            200: BookSerializer,
+            400: OpenApiTypes.OBJECT,
+        },
+        examples = [
+            OpenApiExample(
+                name="request",
+                summary="일반적인 바코드 요청",
+                description="일반적인 바코드 요청",
+                value={
+                    "small_region_code" : "11010",
+                    "isbn13" : "9788954699044"
+                },
+                request_only=True
+            ),
+            OpenApiExample(
+                name="400 : ISBN 13자리 아님",
+                summary="400 : ISBN 13자리 아님",
+                description="ISBN_string이 직접 입력되었으나, 해당 ISBN이 13자리가 아닐경우",
+                value={'status' : {'code' : "E", 'msg' : "13자리의 ISBN을 입력하십시오."},
+                            'request_data': {'ISBN': "입력된13자리가아닌ISBN", 'region_code': "11040"},
+                            'result_data' : {}
+                },
+                status_codes=["400"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="400 : ISBN을 찾지 못함",
+                summary="400 : 데이터가 입력되지 않았습니다",
+                description="필수데이터가 입력되지 않았을경우임. region_code, (ISBN_String || barcode_photo)의 존재를 확인하십시오",
+                value={'status': {'code': "E", 'msg': "데이터가 입력되지 않았습니다."},
+                       'request_data': {'ISBN': "", 'region_code': ""},
+                       'result_data': {}
+                       },
+                status_codes=["400"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="400 : ISBN을 추출하던 중 오류가 발생헀습니다. 직접 ISBN을 입력해보십시오.",
+                summary="400 : ISBN을 추출하던 중 오류가 발생헀습니다. 직접 ISBN을 입력해보십시오.",
+                description="ISBN을 사진으로 추출하던 중 예외가 발생함. ",
+                value={'status': {'code': "E", 'msg': "ISBN을 추출하던 중 오류가 발생헀습니다. 직접 ISBN을 입력해보십시오."},
+                       'request_data': {'ISBN': "", 'region_code': ""},
+                       'result_data': {}
+                       },
+                status_codes=["400"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="400 : ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.",
+                summary="400 : ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오.",
+                description="바코드에서 ISBN을 찾는데 실패하였음.",
+                value={'status': {'code': "E", 'msg': "ISBN을 찾을 수 없었습니다. 13자리의 ISBN을 직접 입력해보십시오."},
+                       'request_data': {'ISBN': "", 'region_code': ""},
+                       'result_data': {}
+                       },
+                status_codes=["400"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="404 : {self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}",
+                summary="404 : {self.ISBN} : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {MSG}",
+                description="API에서 해당 ISBN을 찾는데 실패하였음. ",
+                value={'status': {'code': "E", 'msg': "9782123456803 : 해당하는 ISBN에 일치하는 도서정보가 없습니다. \n {'error': 'ISBN에 해당하는 도서가 없습니다.'}"},
+                       'request_data': {'ISBN': "9782123456803", 'region_code': "11010"},
+                       'result_data': {}
+                       },
+                status_codes=["400"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="200 : 축하합니다! IIOL에서 이 책을 처음 검색하였습니다!",
+                summary="200 : 축하합니다! IIOL에서 이 책을 처음 검색하였습니다!",
+                description="IIOL의 DB에 데이터가 없었을 경우, 처음으로 검색에 성공함. ",
+                value={'status': {'code': "S", 'msg': "축하합니다! IIOL에서 이 책을 처음 검색하였습니다!"},
+                       'request_data': {'ISBN': "9788954699044", 'region_code': "11010"},
+                       'result_data': {}
+                       },
+                status_codes=["200"],
+                response_only=True
+            ),
+            OpenApiExample(
+                name="400 : Code가 W일때",
+                summary="400 : Code가 W일때",
+                description="검색결과를 DB에 저장할때 실패함",
+                value={
+                  "status": {
+                    "code": "W",
+                    "msg": "{'small_region_code': [ErrorDetail(string='이 필드는 null일 수 없습니다.', code='null')]}"
+                  },
+                  "request_data": {
+                    "ISBN": "",
+                    "region_code": ""
+                  },
+                  "result_data": {}
+                },
+                status_codes=["400"],
+                response_only=True
+            ),
+        ]
+    )
+
     def post(self, request, *args, **kwargs):
         self.request = request
-        if request.content_type == 'application/json':
-            self.type = 'json'
         self.return_json = {'status' : {'code' : "", 'msg' : ""},
                             'request_data': {'ISBN': self.ISBN, 'region_code': self.region_code},
                             'result_data' : {}}  
 
         try:
-            if request.POST['region_code']:
-                self.region_code = request.POST['region_code'].strip()
-            if request.POST['ISBN_string'] and len(request.POST['ISBN_string']) != 0:
-                self.ISBN = request.POST['ISBN_string'].strip()
+            if request.POST['small_region_code']:
+                self.region_code = request.POST['small_region_code'].strip()
+            if request.POST['isbn13'] and len(request.POST['isbn13']) != 0:
+                self.ISBN = request.POST['isbn13'].strip()
                 if len(self.ISBN) != 13:
-                    self.response_with_type('E', '13자리의 ISBN을 입력하십시오.', RESTCode=404)
+                    self.response_with_type('E', '13자리의 ISBN을 입력하십시오.', RESTCode=status.HTTP_400_BAD_REQUEST)
             elif 'barcode_photo' in request.FILES:
                 barcode_photo = request.FILES['barcode_photo'].read()
                 img = bytearray(barcode_photo)

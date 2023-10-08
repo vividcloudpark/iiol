@@ -237,4 +237,5 @@ SPECTACULAR_SETTINGS = {
         # Swagger UI 가 제공하는 UI 커스터마이징 옵션값들입니다. 아래 링크를 보면 어떤 커스터마이징 옵션들이 존재하는지 알수있습니다.
         # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
     },
+    'COMPONENT_SPLIT_REQUEST': True,
 }
