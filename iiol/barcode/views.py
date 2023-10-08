@@ -48,7 +48,8 @@ class BarcodeView(APIView):
     def response_with_type(self, code, msg, RESTCode=status.HTTP_200_OK):
         msg = "" if msg == None else msg
         user= self.request.user.pk if self.request.user.is_authenticated else None
-        self.ISBN = EMPTY_ISBN if self.ISBN == None else None
+        if self.ISBN == None:
+            self.ISBN = EMPTY_ISBN
 
         input_data = {'isbn13': self.ISBN,
                       'small_region_code': self.region_code,

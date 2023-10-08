@@ -19,7 +19,7 @@ class BookSerializer(serializers.ModelSerializer):
                     )
 
     def validate_bookImageURL(self, value):
-        if not len(value) == 0:
+        if len(value) == 0:
             raise serializers.ValidationError("url이 공란입니다. 책 정보가 올바른지 확인하십시오.")
         if not value.startswith('http'):
             raise serializers.ValidationError("유효한 URL이 아닌것 같습니다. ")

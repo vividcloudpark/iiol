@@ -15,8 +15,7 @@ dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
 FORCE_SCRIPT_NAME = os.environ.get('MY_URL_PREFIX')
-ACCESS_FROM = os.environ.get('ACCESS_FROM')
-print(f"ACCESS  {ACCESS_FROM}, Serviced on Prefix : {FORCE_SCRIPT_NAME}")
+print(f"Serviced on Prefix : {FORCE_SCRIPT_NAME}")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -51,7 +50,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_bootstrap5',
     'debug_toolbar',
-    'drf_yasg',
+    'drf_spectacular',
     # Myapps
     'iiol',
     'accounts',
@@ -137,9 +136,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'iiol.authentication.JWTCookieAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'iiol.authentication.JWTCookieAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES' : [
         'rest_framework.throttling.AnonRateThrottle',
@@ -147,17 +146,13 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES' : {
         'anon' : '500/hour',
         'user' : '3/sec',
-    }
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
-
-if ACCESS_FROM == 'outside':
-    COOKIE_DOMAIN = None
-else:
-    COOKIE_DOMAIN = 'thecloudpark.xyz'
 
 SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',  # Cookie name. Enables cookies if value is set.
-    'AUTH_COOKIE_DOMAIN': COOKIE_DOMAIN,     # A string like "example.com", or None for standard domain cookie.
+    'AUTH_COOKIE_DOMAIN': 'thecloudpark.xyz',     # A string like "example.com", or None for standard domain cookie.
     'AUTH_COOKIE_SECURE': True,    # Whether the auth cookies should be secure (https:// only).
     'AUTH_COOKIE_HTTP_ONLY' : True, # Http only cookie flag.It's not fetch by javascript.
     'AUTH_COOKIE_PATH': f'{FORCE_SCRIPT_NAME}/accounts/token/',        # The path of the auth cookie.
@@ -222,7 +217,7 @@ CSRF_TRUSTED_ORIGINS = ['https://thecloudpark.xyz']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = f'{FORCE_SCRIPT_NAME}/mybookwishlist/mylist'
-
+LOGIN_URL = f'{FORCE_SCRIPT_NAME}/accounts/login'
 CELERY_ALWAYS_EAGER = True
 CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
@@ -230,3 +225,16 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TAST_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Seoul'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'IIOL API',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "SWAGGER_UI_SETTINGS": {
+        'deepLinking': True,  # API를 클릭할때 마다 SwaggerUI의 url이 변경됩니다. (특정 API url 공유시 유용하기때문에 True설정을 사용합니다)
+        'persistAuthorization': True,  # True 이면 SwaggerUI상 Authorize에 입력된 정보가 새로고침을 하더라도 초기화되지 않습니다.
+        'displayOperationId': True,  # True이면 API의 urlId 값을 노출합니다. 대체로 DRF api name둘과 일치하기때문에 api를 찾을때 유용합니다.
+        'filter': True,  # True 이면 Swagger UI에서 'Filter by Tag' 검색이 가능합니다.
+        # Swagger UI 가 제공하는 UI 커스터마이징 옵션값들입니다. 아래 링크를 보면 어떤 커스터마이징 옵션들이 존재하는지 알수있습니다.
+        # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+    },
+}

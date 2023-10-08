@@ -16,32 +16,15 @@ from django.db.models import Q
 import datetime
 from django.contrib.auth import get_user_model
 
+from iiol.authentication import JWTLoginRequiredMixin
+
 User = get_user_model()
 
-class JWTLoginRequiredMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        """If token was provided, ignore authenticated status."""
-        http_auth = request.META.get("HTTP_AUTHORIZATION")
-        if http_auth and "Bearer" in http_auth:
-            pass
 
-        elif request.COOKIES.get("access_token"):
-            pass
-
-        elif not request.user.is_authenticated:
-            return self.handle_no_permission()
-
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
 
 class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
     basename = 'mylist'
-    login_url = f'{settings.FORCE_SCRIPT_NAME}/accounts/login'
-    authentication_classes = [
-        SessionAuthentication,
-        JWTCookieAuthentication,
-        JWTAuthentication,
-        ]
+
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['bookname', 'isbn13']
@@ -83,20 +66,35 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def create(self, request):
         self.request = request
-        self.return_json = None
+        self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
         self.response_type = 'json'
 
-        request.data['user'] = request.user.pk
-        serializer = MybookWishlistSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            self.return_json['result_data'] = serializer.data
-            return self.response_with_type('S', '', RESTCode=status.HTTP_201_CREATED)
+        qs = MybookWishlist.objects.all().filter(user=request.user.pk, isbn13=request.data['isbn13'])
+        if qs is not None:
+            if (qs[0].DELETED == True):
+                serializer = MybookWishlistSerializer(qs[0], data={"DELETED": False}, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    self.return_json['result_data'] = MybookWishlistSerializer().to_representation(qs[0])
+                    return self.response_with_type('S', "삭제되어있던 Mywishlist에서 복원했습니다.", RESTCode=status.HTTP_200_OK)
+                else:
+                    print(serializer.errors)
+                    return self.response_with_type('E', str(serializer.errors), RESTCode=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                self.return_json['result_data'] = MybookWishlistSerializer().to_representation(qs[0])
+                return self.response_with_type('E', "이미 저장되었습니다.", RESTCode=status.HTTP_409_CONFLICT)
         else:
-            return self.response_with_type('E', serializer.errors, RESTCode=status.HTTP_400_BAD_REQUEST)
+            request.data['user'] = request.user.pk
+            serializer = MybookWishlistSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                self.return_json['result_data'] = serializer.data
+                return self.response_with_type('S', '성공적으로 MyBookwishlist에 추가했습니다!', RESTCode=status.HTTP_201_CREATED)
+            else:
+                return self.response_with_type('E', str(serializer.errors), RESTCode=status.HTTP_400_BAD_REQUEST)
     def partial_update(self, request, pk):
         self.request = request
-        self.return_json = None
+        self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
         self.response_type = 'json'
         try:
             item = MybookWishlist.objects.get(isbn13=pk, user=request.user.pk, DELETED=False)
@@ -117,7 +115,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def destroy(self, request, pk):
         self.request = request
-        self.return_json = None
+        self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
         self.response_type = 'json'
         try:
             item = MybookWishlist.objects.get(isbn13=pk, user=request.user.pk, DELETED=False)
