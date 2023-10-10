@@ -70,7 +70,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
         self.response_type = 'json'
 
         qs = MybookWishlist.objects.all().filter(user=request.user.pk, isbn13=request.data['isbn13'])
-        if qs is not None:
+        if qs.exists():
             if (qs[0].DELETED == True):
                 serializer = MybookWishlistSerializer(qs[0], data={"DELETED": False}, partial=True)
                 if serializer.is_valid():
