@@ -92,8 +92,6 @@
             regionJson = jsonData;
             //지역코드 - 대분류 추가
 
-
-            // Populate the "big" region select box
             for (const [bigcode, bigValue] of Object.entries(jsonData.big)) {
                 const bigOption = document.createElement("option");
                 bigOption.text = bigValue;
