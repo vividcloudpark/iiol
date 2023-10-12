@@ -1,6 +1,4 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from iiol.authentication import JWTCookieAuthentication
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
@@ -92,6 +90,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
                 return self.response_with_type('S', '성공적으로 MyBookwishlist에 추가했습니다!', RESTCode=status.HTTP_201_CREATED)
             else:
                 return self.response_with_type('E', str(serializer.errors), RESTCode=status.HTTP_400_BAD_REQUEST)
+
     def partial_update(self, request, pk):
         self.request = request
         self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}

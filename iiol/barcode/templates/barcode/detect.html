@@ -35,28 +35,20 @@
                             </div>
                         </div>
                     </li>
-                     {% comment %} <li id = 'barcode-reader' class="list-group-item">
-                        바코드 리더기 - by [https://scanapp.org/html5-qrcode-docs/docs/intro]
-                        <div id="reader">
-                            <input type="file" id="qr-input-file" accept="image/*" capture>
-                        </div>
-                    </li>  {% endcomment %}
                     <li class="list-group-item">
                         <h3>ISBN 백엔드에서 추출(*)</h3>
                        <div>
                             <input id="inputbox-photo" type ="file" name="barcode_photo" accept="image/*">
                         </div>
                     </li>
-                    
-                    {% comment %}
-                    <li class="list-group-item">
-                        Quagga
-                       <div id="scanner-container">
-                            <div id="scanner-container-canvas"></div>
-                            <input type="button" id="quaggaBtn" value="Start/Stop the scanner" />
+
+                    {% comment %} <li class="list-group-item">
+                        <h3>바코드 리더</h3>
+                        <div id="reader" width="600px" height="600px">
+                            <input type="file" id="qr-input-file" accept="image/*" capture>
                         </div>
-                    </li>
-                    {% endcomment %}
+                    </li> {% endcomment %}
+
 
                     <li class="list-group-item">
                         <h3>ISBN 입력</h3>
@@ -71,148 +63,103 @@
                 
             </form>
         </div>
+
+        <div><button type="button" id = "logincheck"> 나로그인? </button></div>
+        <div><button type="button" id = "usercheck"> 내정보 ? </button></div>
 </div>
 
- <script>
-        // 도서관 대분류, 중분류 
-        let apiUrl = '{% url 'barcode:region_code' %}';
-        var regionJson;
-
-        const bigRegionSelect = document.getElementById("selectbox-big_region");
-        const smallRegionSelect = document.getElementById("selectbox-small_region_code");
-        fetch(apiUrl)
-        .then(response => {
-            // HTTP 상태 코드 확인
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(jsonData=> {
-            regionJson = jsonData;
-            //지역코드 - 대분류 추가
-
-            for (const [bigcode, bigValue] of Object.entries(jsonData.big)) {
-                const bigOption = document.createElement("option");
-                bigOption.text = bigValue;
-                bigOption.value = bigcode;
-                bigRegionSelect.appendChild(bigOption);
-            }
-            bigRegionSelect.addEventListener("change", populateSmallRegion);
-            populateSmallRegion();
-
-        })
-        .catch(error => {
-            // 오류 처리 코드
-            console.error('Fetch error:', error);
-        });
-
-        function populateSmallRegion() {
-            // Clear the current options in the "small" region select box
-            smallRegionSelect.innerHTML = "";
 
 
-            const selectedBigRegion = bigRegionSelect.value;
-
-            if (selectedBigRegion in regionJson.small) {
-                const smallRegionData = regionJson.small[selectedBigRegion];
-                // Populate the "small" region select box based on the selected "big" region
-                for (const [smallcode, smallValue] of Object.entries(smallRegionData)) {
-                    const smallOption = document.createElement("option");
-                    smallOption.text = smallValue;
-                    smallOption.value = smallcode;
-                    smallRegionSelect.appendChild(smallOption);
-                }
-            }
-        }
-</script>
-
-{% comment %} <script src="{% static 'barcode/js/quagga.min.js' %}"></script> {% endcomment %}
-
-{% comment %} <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script> 
+<script type="text/javascript" src="{% static "js/AuthManager.js" %}"></script>
+<script type="text/javascript" src="{% static "barcode/js/RegionJsonManger.js" %}"></script>
 <script>
-    let _scannerIsRunning = false;
-    function startScanner() {
-        Quagga.init({
-            inputStream : {
-                name : "Live",
-                type : "LiveStream",
-                locate : true,
-                numOfWorkers: 4,
-                frequency: 10,
-                locator: {
-                    "patchSize": "medium",
-                    "halfSample": true
-                },
-                target: document.querySelector('#scanner-container-canvas'), // 바코드 이미지를 업로드할 input 요소
-                focusMode : 'continuous',
-                constraints: {
-                    width: 480,
-                    height: 320,
-                    aspectRatio: 1,
-                    // deviceId: selectedDevice ? selectedDevice : "default",
-                    //...(cameraId === 'default' ? { facingMode: 'environment' } : { deviceId: cameraId })
-                },
-                decoder: {
-                    readers: ["ean_reader"],
-                    debug: {
-                        drawBoundingBox: true
-                    }
+    
+    const RegionJsonApiUrl = '{% url 'barcode:region_code' %}'
+    const LoginApiUrl = '{% url 'accounts:login' %}';
+    const UserInfoApiUrl = '{% url 'accounts:info' %}';    
+    //도서관 분류 JSON 호출 및 Option 생성
+    callRegionJsonAndAppendToOptions(RegionJsonApiUrl);
+    
+    //Login여부 확인 및 Login했을경우 기본도서관 설정
+    checkAndGetUserLibData();
+    
+    async function checkAndGetUserLibData(){
+        try{
+            const logined = await isLogined(LoginApiUrl);
+            if (logined){
+                const user_data = await getUserInfo(UserInfoApiUrl);
+                if (user_data.my_region != null){
+                    document.getElementById("selectbox-big_region").value = user_data.my_region.substring(0,2);
+                    document.getElementById("selectbox-small_region_code").value = user_data.my_region;
                 }
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                console.log("Initialization finished. Starting Quagga...");
-                Quagga.start();
             }
-        });
+        } catch (err) {
+            console.error(err);
+        }
     }
 
-    Quagga.onProcessed(function(result) {
-        var drawingCtx = Quagga.canvas.ctx.overlay,
-            drawingCanvas = Quagga.canvas.dom.overlay;
-
-        if (result) {
-            if (result.boxes) {
-                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
-                result.boxes.filter(function (box) {
-                    return box !== result.box;
-                }).forEach(function (box) {
-                    Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
-                });
-            }
-
-            if (result.box) {
-                Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
-            }
-
-            if (result.codeResult && result.codeResult.code) {
-                document.querySelector('#inputbox-ISBN').textContent = result.codeResult.code;
-                Quagga.stop();
-            }
-        }
-    });
-
-    document.getElementById("quaggaBtn").addEventListener("click", function () {
-        if (_scannerIsRunning) {
-            _scannerIsRunning = false;
-            Quagga.stop();
-        } else {
-            _scannerIsRunning = true;
-            startScanner();
-        }
-    }, false);
-
-    // 바코드 스캔 중지 시 이벤트 처리
-    Quagga.onDetected(function(result) {
-        if (result.codeResult) {
-            alert("꺅", result.codeResult.code);
-            console.log("Barcode detected and processed: " + result.codeResult.code);
-        }
-    });
 </script>
-{% endcomment %}
+
+
+
+{% comment %} <script src="{% static 'barcode/js/quagga.min.js' %}"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+
+    const html5QrCode = new Html5Qrcode(/* element id */ "reader", { formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13]});
+    
+    // File based scanning
+    const fileinput = document.getElementById('qr-input-file');
+    fileinput.addEventListener('change', e => {
+        if (e.target.files.length == 0) {
+            // No file selected, ignore 
+            return;
+        }
+
+        const imageFile = e.target.files[0];
+        // Scan QR Code
+        html5QrCode.scanFileV2(imageFile, true)
+        .then(decodedText => {
+            document.getElementById('inputbox-ISBN').innerHTML = decodedText;
+        })
+        .catch(err => {
+            // failure, handle it.
+            console.log(`Error scanning file. Reason: ${err}`)
+        });
+    });
+
+
+
+    function onScanSuccess(decodedText, decodedResult) {
+        
+        // handle the scanned code as you like, for example:
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+        document.getElementById('inputbox-ISBN').innerHTML = decodedResult;
+    }
+      
+    function onScanFailure(error) {
+        // handle scan failure, usually better to ignore and keep scanning.
+        // for example:
+        document.getElementById('inputbox-ISBN').innerText = "찾는중입니다";
+    }
+
+    let config = { 
+        fps : 10, 
+        qrbox : { width: 400, height: 150 },
+        formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13 ],
+        videoConstraints: {
+            width: 1920,
+            height: 1080,
+            facingMode: "environment",
+        },
+    }
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    config,
+    /* verbose= */ false);
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+</script>
+ {% endcomment %}
 
 {% endblock content %}

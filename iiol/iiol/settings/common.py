@@ -14,6 +14,7 @@ BASE_DIR = dirname(dirname(dirname(abspath(__file__))))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
+
 FORCE_SCRIPT_NAME = os.environ.get("MY_URL_PREFIX")
 print(f"Serviced on Prefix : {FORCE_SCRIPT_NAME}")
 SERVER_ALIAS = os.environ.get("SERVER_ALIAS")
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "rest_framework",  # Third Apps
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "django_bootstrap5",
     "debug_toolbar",
     "drf_spectacular",
@@ -89,6 +91,7 @@ CACHES = {
 }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_EXPIRE_SECONDS = 300  # 5분
 
 TEMPLATES = [
     {
@@ -152,7 +155,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "AUTH_COOKIE": "access_token",  # Cookie name. Enables cookies if value is set.
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_COOKIE": "IIOL_JWT",  # Cookie name. Enables cookies if value is set.
     "AUTH_COOKIE_DOMAIN": "thecloudpark.xyz",  # A string like "example.com", or None for standard domain cookie.
     "AUTH_COOKIE_SECURE": True,  # Whether the auth cookies should be secure (https:// only).
     "AUTH_COOKIE_HTTP_ONLY": True,  # Http only cookie flag.It's not fetch by javascript.
@@ -160,9 +164,16 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SAMESITE": "Lax",  # Whether to set the flag restricting cookie leaks on cross-site requests.
     # This can be 'Lax', 'Strict', or None to disable the flag.
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
+    "REFRESH_COOKIE": "IIOL_JWT_REFRESH",  # Cookie name. Enables cookies if value is set.
     "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
 INTERNAL_IPS = ["127.0.0.1"]
