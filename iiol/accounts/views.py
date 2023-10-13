@@ -81,13 +81,16 @@ class LoginView(APIView):
     def head(self, request, format=None):
         self.response_type = "json"
         if AuthManager.is_logined(request):
+            messages.success(request, "로그인 중 입니다.")
             return Response(status=200)
         else:
+            messages.success(request, "로그인이 필요합니다.")
             return Response(status=401)
 
     def get(self, request, format=None):
 
         if AuthManager.is_logined(request):
+            messages.success(request, "이미 로그인 되어있었습니다!")
             return self.response_with_type("S", "이미 로그인 되어있었습니다!")
 
         return render(
@@ -117,6 +120,7 @@ class LoginView(APIView):
             )
         JWT_data = AuthManager.issue_tokens(user)
         login(request, user)
+        messages.success(request, "로그인에 성공하였습니다!")
         return self.response_with_type("S", "로그인에 성공하였습니다!", JWT_data=JWT_data)
 
 

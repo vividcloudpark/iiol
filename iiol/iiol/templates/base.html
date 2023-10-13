@@ -44,17 +44,22 @@
         </div>
     </nav>
     <div class="container">
-        {% if messages %}
-            <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
+        <div class="toast-container position-absolute top-0 end-0 p-3">
+            {% if messages %}
+                {% for message in messages %}
+                    {% include "toast.html" with toast_header=message.tag toast_msg=message %}
+                {% endfor %}
+            {% endif %}
+        </div>  
+
         {% block content %}
+
+
+
 
         {% endblock content %}
     </div>
 </body>
 
 </html>
+
