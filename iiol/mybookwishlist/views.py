@@ -13,7 +13,7 @@ from rest_framework import viewsets
 from django.db.models import Q
 import datetime
 from django.contrib.auth import get_user_model
-
+from django.contrib import messages
 from iiol.authentication import JWTLoginRequiredMixin
 
 User = get_user_model()
@@ -57,7 +57,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
         qs = MybookWishlist.objects.all()\
             .filter(user=request.user.pk, DELETED=False).order_by("-updated_at").select_related("isbn13")
         if not qs:
-            return self.response_with_type('S', '앗, 아직 저장하신 데이터가 없는것 같은데요...', RESTCode=status.HTTP_204_NO_CONTENT)
+            return self.response_with_type('S', 'Nothing...', RESTCode=status.HTTP_204_NO_CONTENT)
         serializer = MybookWishlistSerializer(qs, many=True)
         self.return_json['result_data'] = serializer.data
         return self.response_with_type('S', '')
@@ -107,10 +107,11 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
         if serializer.is_valid():
             serializer.save()
             self.return_json['result_data'] = serializer.data
+            
             return self.response_with_type('S', '정보 수정에 성공했습니다.', RESTCode=status.HTTP_201_CREATED)
         else:
             print(serializer.errors)
-        return self.response_with_type('E', serializer.errors, RESTCode=status.HTTP_400_BAD_REQUEST)
+        return self.response_with_type('E', serializer.errors, RESTCodㅍe=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
         self.request = request

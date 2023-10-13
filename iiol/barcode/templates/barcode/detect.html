@@ -88,9 +88,11 @@
                 if (user_data.my_region != null){
                     document.getElementById("selectbox-big_region").value = user_data.my_region.substring(0,2);
                     document.getElementById("selectbox-small_region_code").value = user_data.my_region;
+                    showToast(message=`안녕하세요, ${user_data.username}님, \n 프로필에 설정한 지역으로 설정되었습니다.`);
                 }
             }
         } catch (err) {
+            showToast(message='도서관 지역 설정이 불편하지 않으세요? \n 회원가입시 기본 지역을 설정할 수 있습니다!');
             console.error(err);
         }
     }

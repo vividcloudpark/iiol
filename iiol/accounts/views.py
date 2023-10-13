@@ -81,10 +81,8 @@ class LoginView(APIView):
     def head(self, request, format=None):
         self.response_type = "json"
         if AuthManager.is_logined(request):
-            messages.success(request, "로그인 중 입니다.")
             return Response(status=200)
         else:
-            messages.success(request, "로그인이 필요합니다.")
             return Response(status=401)
 
     def get(self, request, format=None):
@@ -144,7 +142,7 @@ def signup(request):
             signed_user = form.save()
             auth_login(request, signed_user)
             messages.success(request, "회원가입을 환영합니다.")
-            next_url = request.GET.get("next", "/") or "mywishlist/mylist"
+            next_url = f"{settings.FORCE_SCRIPT_NAME}/mybookwishlist/mylist"
             return redirect(next_url)
     else:
         form = SignupForm()

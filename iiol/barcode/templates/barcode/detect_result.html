@@ -27,8 +27,7 @@
             </div>
     </div>
 </div>
-<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
-<script type="text/javascript" src="{% static "js/AuthManager.js" %}"></script>
+
 <script>
     function add_mybook() {
         let apiUrl = '{% url 'mybookwishlist:mylist' %}';
@@ -50,7 +49,9 @@
             alert(data.status.msg)
             // HTTP 상태 코드 확인
             if (data.status.code == "E") {
-                throw new Error(JSON.stringify(data.status.msg));
+                errmsg = JSON.stringify(data.status.msg);
+                showToast(message=errmsg);
+                throw new Error(errmsg);
             }
         })
         .catch(error => {
@@ -65,7 +66,7 @@
             if (logined){
                 const user_data = add_mybook();
             } else{
-                alert("로그인을 해주세요!");
+                showToast(message="로그인이 필요합니다.");
                 throw new Error("로그인되지 않았습니다");
             }
         } catch (err) {

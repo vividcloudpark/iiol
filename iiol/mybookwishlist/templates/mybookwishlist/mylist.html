@@ -20,8 +20,8 @@
             <div id ={{ mybookwish.isbn13 }} class="card">
         {% endif %}
             <div class="card-header">
-{#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
-{#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
+        {#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
+        {#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
 
                 <blockquote class="blockquote text-left">
                   <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )</p>
@@ -73,11 +73,12 @@
     </div>
 </div>
 
-<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
-
 
 <script>
-
+    {% comment %} if (document.querySelectorAll('.save-button').length == 0){
+        showToast(message="앗, 저장된 책이 없는것 같습니다. \n 도서 검색을 통해 Mybookwishlist를 채워볼까요? ");
+    } {% endcomment %}
+    
     document.addEventListener('DOMContentLoaded', () => {
         // "저장하기" 버튼을 클릭할 때 실행되는 함수
         document.querySelectorAll('.save-button').forEach(button => {
@@ -99,8 +100,6 @@
         const memo = document.getElementById(`${isbn13}-memo`).value;
         const readYn = document.getElementById(`${isbn13}-readYn`).checked;
 
-        // AJAX 요청을 사용하여 서버로 데이터를 전송하고 저장하는 작업 수행
-        // 이 부분은 서버 측 뷰와 연결해야 합니다.
         const base_url = "{% url 'mybookwishlist:mylist' %}";
         fetch(`${base_url}${isbn13}/`, {
             method: 'PATCH',
@@ -125,10 +124,10 @@
                         console.log(data);
                         document.getElementById(isbn13).style.opacity = readYn ? '0.5' : '1';
                         document.getElementById(`${isbn13}-footer`).innerText  = readYn ? `읽은 날짜 : ${data.result_data.readDate}` : `저장한 시간: ${Date(data.result_data.created_at)})`;
-                        alert('도서 정보가 성공적으로 저장되었습니다.');
+                        showToast(message='도서 정보가 성공적으로 저장되었습니다.');
                     } else {
+                        showToast(message='도서 정보 저장 중 오류가 발생했습니다.');
                         console.error('도서 정보 저장 중 오류가 발생했습니다.');
-                        // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
                     }
                 });
             } else {
@@ -160,10 +159,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.status.code === 'S') {
-                console.log('도서 정보가 성공적으로 삭제되었습니다.');
+                showToast(message='도서 정보가 성공적으로 삭제되었습니다.');
                 document.getElementById(isbn13).remove();
             } else {
-                console.error('도서 정보 저장 중 오류가 발생했습니다.');
+                showToast(message='도서 정보 저장 중 오류가 발생했습니다.');
                 // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
             }
         })

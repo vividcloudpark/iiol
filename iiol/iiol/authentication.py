@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, Blacklist
 from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
 from rest_framework_simplejwt.backends import TokenBackend
+from django.contrib import messages
 import jwt
 
 
@@ -115,6 +116,7 @@ class JWTLoginRequiredMixin(LoginRequiredMixin):
             pass
 
         elif not request.user.is_authenticated:
+            messages.info(request, "로그인이 되어있지 않네요.. :( \n 로그인을 하시면 IIOL의 모든 기능을 이용할 수 있습니다.")
             return self.handle_no_permission()
 
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
