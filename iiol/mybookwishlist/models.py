@@ -12,7 +12,7 @@ class MybookWishlist(BaseTimeModel):
         blank=True, null=True, auto_now=False, auto_now_add=False
     )
     groupname = models.ForeignKey(
-        "mybookwishlist.MybookWishlistGroup", on_delete=models.PROTECT
+        "mybookwishlist.MybookWishlistGroup", on_delete=models.PROTECT, null=True, blank=True
     )
 
     class Meta:
