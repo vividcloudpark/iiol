@@ -308,7 +308,7 @@ class SmallRegion(BaseTimeModel, models.Model):
         ordering = ["small_region_code"]
 
     def __str__(self):
-        return f"{self.big_region_code} {self.get_small_region_code_display()} ({self.small_region_code})"
+        return f"{self.big_region_code} {self.get_small_region_code_display()}"
 
 
 class Library(BaseTimeModel, models.Model):
@@ -328,4 +328,4 @@ class Library(BaseTimeModel, models.Model):
     )
 
     def __str__(self):
-        return f"[{self.libCode}][{self.small_region_code}] {self.libName}"
+        return f"[{self.small_region_code}] {self.libName}"

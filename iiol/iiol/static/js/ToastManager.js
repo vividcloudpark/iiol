@@ -1,8 +1,8 @@
-function showToast(message, callbackFn){
+function showToast(message, url, callbackFn){
     Toastify({
         text: message,
         duration: 3000,
-        destination: "",
+        destination: url,
         newWindow: true,
         close: true,
         gravity: "top", // `top` or `bottom`

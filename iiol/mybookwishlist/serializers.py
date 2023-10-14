@@ -1,4 +1,4 @@
-from .models import MybookWishlist
+from .models import MybookWishlist, MybookWishlistGroup
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -24,11 +24,13 @@ class BookSerializer(serializers.ModelSerializer):
 class MybookWishlistSerializer(serializers.ModelSerializer):
     # author_username = serializers.ReadOnlyField(source='user.username')
     created_at  = serializers.ReadOnlyField()
+    groupname = serializers.ReadOnlyField(source='groupname.name')
+    groupPk = serializers.ReadOnlyField(source='groupname.pk')
 
     class Meta:
         model = MybookWishlist
         fields = ('user', 'isbn13', 'readYn', 'readDate',
-                  'input_context', 'memo', 'DELETED', 'created_at')
+                  'input_context', 'memo', 'DELETED', 'created_at', 'groupPk', 'groupname')
 
     validaters = [
         UniqueTogetherValidator(
@@ -49,3 +51,10 @@ class MybookWishlistSerializer(serializers.ModelSerializer):
             response['book'] = BookSerializer(ISBN).data
             cache.set(f'ISBN13_{ISBN.isbn13}', json.dumps([BookSerializer(ISBN).data]), CACHE_TTL)
         return response
+
+class MybookWishlistGroupSerializer(serializers.ModelSerializer):
+    pk  = serializers.ReadOnlyField()
+
+    class Meta:
+        model = MybookWishlistGroup
+        fields = ('pk', 'name')

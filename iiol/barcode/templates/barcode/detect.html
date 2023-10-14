@@ -73,7 +73,9 @@
     
     const RegionJsonApiUrl = '{% url 'barcode:region_code' %}'
     const LoginApiUrl = '{% url 'accounts:login' %}';
-    const UserInfoApiUrl = '{% url 'accounts:info' %}';    
+    const UserInfoApiUrl = '{% url 'accounts:info' %}';
+    const UserProfileEditUrl = '{% url 'accounts:profile_edit' %}';
+    const UserSignUpUrl = '{% url 'accounts:signup' %}';
     //도서관 분류 JSON 호출 및 Option 생성
     callRegionJsonAndAppendToOptions(RegionJsonApiUrl);
     
@@ -88,11 +90,16 @@
                 if (user_data.my_region != null){
                     document.getElementById("selectbox-big_region").value = user_data.my_region.substring(0,2);
                     document.getElementById("selectbox-small_region_code").value = user_data.my_region;
-                    showToast(message=`안녕하세요, ${user_data.username}님, \n 프로필에 설정한 지역으로 설정되었습니다.`);
+                    showToast(message=`안녕하세요, ${user_data.username}님, \n 프로필에 설정한 지역으로 설정되었습니다.🎉`,
+                            url=UserProfileEditUrl);
+                }else{
+                    showToast(message=`${user_data.username}님, \n 프로필에 내 도서관을 설정할 수 있다는 것, \n 알고계셨나요?😉`,
+                                url=UserProfileEditUrl);
                 }
             }
         } catch (err) {
-            showToast(message='도서관 지역 설정이 불편하지 않으세요? \n 회원가입시 기본 지역을 설정할 수 있습니다!');
+            showToast(message='도서관 지역 설정이 불편하지 않으세요? \n 회원가입시 기본 지역을 설정할 수 있습니다! (클릭)📝',
+                        url = UserSignUpUrl);
             console.error(err);
         }
     }

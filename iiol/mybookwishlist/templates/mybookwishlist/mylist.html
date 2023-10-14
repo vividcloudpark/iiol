@@ -7,24 +7,50 @@
 {% block content %}
 <div class="container col-md-8">
     <div class="card mt-5">
-{% if status.code != "E" %}
+
+    <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
+
+    <!-- 분류 버튼 -->
+    <div class="btn-group" role="group" aria-label="분류 선택">
+        <button id = "group_btn_all" type="button" class="btn btn-dark">전체</button>
+        <button id = "group_btn_nogroup" type="button" class="btn btn-success">분류 없음</button>
+        <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            사용자 분류 ( {{ result_data.groupname|length }} )
+            <ul class="dropdown-menu">
+                {% for groupobj in result_data.groupname %}
+                    <li id = "group_btn_{{ groupobj.pk }}"><a class="dropdown-item" href="#">{{ groupobj.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </button>
+        </div>
+        <button id = "group_btn_nogroup" type="button" class="btn btn-info">새 분류</button>
+    </div>
+    <!-- 분류 버튼 끝 -->
+
+
     {% if status.msg != None %}
         <div>{{ status.msg }}</div>
-        <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
     {% endif %}
 
-    {% for mybookwish in result_data %}
+    {% for mybookwish in result_data.data %}
         {% if mybookwish.readYn == True %}
-            <div id ={{ mybookwish.isbn13 }} class="card" style="opacity: 50%;">
+            <div id ="{{ mybookwish.isbn13 }}" class="card mb-2 group-pk-{{ mybookwish.groupPk}}" style="opacity: 50%;">
         {% else %}
-            <div id ={{ mybookwish.isbn13 }} class="card">
+            <div id ="{{ mybookwish.isbn13 }}" class="card mb-2 group-pk-{{ mybookwish.groupPk}}">
         {% endif %}
             <div class="card-header">
-        {#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
-        {#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
+                {#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
+                {#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
 
                 <blockquote class="blockquote text-left">
-                  <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )</p>
+                    {%  if mybookwish.groupname == None %}
+                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in 분류없음 </p>
+                    {% else %}
+                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in {{ mybookwish.groupname }}</p>
+                    {% endif %}
+
+
                     {% if mybookwish.readYn == True %}
                         <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">읽은 날짜 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime" >{{ mybookwish.readDate}}</cite></footer>
                     {% else %}
@@ -67,9 +93,7 @@
             </div>
         </div>
     {% endfor %}
-{% else %}
-    {{ status.msg }}
-{% endif %}
+
     </div>
 </div>
 

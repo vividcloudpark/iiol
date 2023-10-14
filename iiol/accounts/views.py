@@ -107,12 +107,14 @@ class LoginView(APIView):
         password = data.get("password", None)
         user = authenticate(username=username, password=password)
         if user is None:
+            messages.error(request, "해당하는 유저가 없거나, 패스워드가 일치하지 않습니다.")
             return self.response_with_type(
                 "E",
                 "해당하는 유저가 없거나, 패스워드가 일치하지 않습니다.",
                 RESTCode=status.HTTP_404_NOT_FOUND,
             )
         elif not user.is_active:
+            messages.error(request, "이 유저는 현재 활성화 상태가 아닙니다 .")
             return self.response_with_type(
                 "E", "이 유저는 현재 활성화 상태가 아닙니다 .", RESTCode=status.HTTP_404_NOT_FOUND
             )
@@ -165,10 +167,10 @@ class CurrentUserView(JWTLoginRequiredMixin, APIView):
 def profile_edit(request):
     if request.method == "POST":
         form = ProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_vaild():
+        if form.is_valid():
             form.save()
-            messages.success(request, "프로필 수정/저장완료!")
-            return redirect("profile_edit")
+            messages.success(request, "프로필을 수정했습니다.")
+            return redirect("accounts:profile_edit")
     else:
         form = ProfileForm(instance=request.user)
     return render(request, "accounts/profile_edit_form.html", {"form": form})
