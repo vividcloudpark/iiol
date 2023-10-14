@@ -7,24 +7,50 @@
 {% block content %}
 <div class="container col-md-8">
     <div class="card mt-5">
-{% if status.code != "E" %}
+
+    <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
+
+    <!-- 분류 버튼 -->
+    <div class="btn-group" role="group" aria-label="분류 선택">
+        <button id = "group_btn_all" type="button" class="btn btn-dark">전체</button>
+        <button id = "group_btn_nogroup" type="button" class="btn btn-success">분류 없음</button>
+        <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            사용자 분류 ( {{ result_data.groupname|length }} )
+            <ul class="dropdown-menu">
+                {% for groupobj in result_data.groupname %}
+                    <li id = "group_btn_{{ groupobj.pk }}"><a class="dropdown-item" href="#">{{ groupobj.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </button>
+        </div>
+        <button id = "group_btn_nogroup" type="button" class="btn btn-info">새 분류</button>
+    </div>
+    <!-- 분류 버튼 끝 -->
+
+
     {% if status.msg != None %}
         <div>{{ status.msg }}</div>
-        <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
     {% endif %}
 
-    {% for mybookwish in result_data %}
+    {% for mybookwish in result_data.data %}
         {% if mybookwish.readYn == True %}
-            <div id ={{ mybookwish.isbn13 }} class="card" style="opacity: 50%;">
+            <div id ="{{ mybookwish.isbn13 }}" class="card mb-2 group-pk-{{ mybookwish.groupPk}}" style="opacity: 50%;">
         {% else %}
-            <div id ={{ mybookwish.isbn13 }} class="card">
+            <div id ="{{ mybookwish.isbn13 }}" class="card mb-2 group-pk-{{ mybookwish.groupPk}}">
         {% endif %}
             <div class="card-header">
-{#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
-{#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
+                {#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
+                {#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
 
                 <blockquote class="blockquote text-left">
-                  <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} )</p>
+                    {%  if mybookwish.groupname == None %}
+                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in 분류없음 </p>
+                    {% else %}
+                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in {{ mybookwish.groupname }}</p>
+                    {% endif %}
+
+
                     {% if mybookwish.readYn == True %}
                         <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">읽은 날짜 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime" >{{ mybookwish.readDate}}</cite></footer>
                     {% else %}
@@ -33,48 +59,50 @@
 
                 </blockquote>
             </div>
-            <div class="card-body" style="display :flex; ">
-                    <div class="container" style="display :flex;">
-                        <div class="item"><img src="{{ mybookwish.book.bookImageURL }}" height="200"></div>
-                        <div class="item" style="flex: 1 0 auto;">
-                            <div class="container flex-auto">
-                                <div class="input-group col-md-6">
-                                  <span class="input-group-text auto" id="addon-wrapping">WHEN</span>
-                                    <input id="{{ mybookwish.isbn13 }}-input_context" value="{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="input_context" aria-describedby="addon-wrapping">
-                                </div>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">MEMO</span>
-                                    <textarea id="{{ mybookwish.isbn13 }}-memo" class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
-                                </div>
-                                <div class="input-group mb-3 col-md-6">
-                                    <span class="input-group-text">읽었어요!</span>
-                                    <div class="input-group-text">
-                                        {% if mybookwish.readYn %}
-                                            <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input" checked>
-                                        {% else %}
-                                            <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
-                                        {% endif %}
-                                    </div>
-                                    <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장하기</button>
-                                    <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제하기</button>
-                                </div>
-                            </div>
+
+            <div class="card-body d-flex">
+                <div class="item p-2"><img src="{{ mybookwish.book.bookImageURL }}" height="200"></div>
+                <div class="item p-2 input-group">
+                    <div class="input-group ">
+                        <div class="input-group-prepend d-flex align-items-stretch">
+                            <span class="input-group-text" id="{{ mybookwish.isbn13 }}-input_context_label">WHEN</span>
                         </div>
+                        <input id="{{ mybookwish.isbn13 }}-input_context" value="{{ mybookwish.input_context }}" type="text" class="form-control" placeholder="" aria-label="input_context" aria-describedby="{{ mybookwish.isbn13 }}-input_context_label">
                     </div>
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend d-flex align-items-stretch">
+                            <span class="input-group-text">MEMO</span>
+                        </div>
+                        <textarea id="{{ mybookwish.isbn13 }}-memo" class="form-control" aria-label="MEMO">{{ mybookwish.memo}}</textarea>
+                    </div>
+                    <div class="input-group d-flex ">
+                        <div class="input-group-prepend d-flex align-items-stretch">
+                            <span class="input-group-text">읽었어요!</span>
+                        </div>
+                        <div class="input-group-text">
+                            {% if mybookwish.readYn %}
+                                <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input" checked>
+                            {% else %}
+                                <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장</button>
+                        <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제</button>
+                    </div>
+                </div>
             </div>
         </div>
     {% endfor %}
-{% else %}
-    {{ status.msg }}
-{% endif %}
+
     </div>
 </div>
 
-<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
-
 
 <script>
-
+    {% comment %} if (document.querySelectorAll('.save-button').length == 0){
+        showToast(message="앗, 저장된 책이 없는것 같습니다. \n 도서 검색을 통해 Mybookwishlist를 채워볼까요? ");
+    } {% endcomment %}
+    
     document.addEventListener('DOMContentLoaded', () => {
         // "저장하기" 버튼을 클릭할 때 실행되는 함수
         document.querySelectorAll('.save-button').forEach(button => {
@@ -96,8 +124,6 @@
         const memo = document.getElementById(`${isbn13}-memo`).value;
         const readYn = document.getElementById(`${isbn13}-readYn`).checked;
 
-        // AJAX 요청을 사용하여 서버로 데이터를 전송하고 저장하는 작업 수행
-        // 이 부분은 서버 측 뷰와 연결해야 합니다.
         const base_url = "{% url 'mybookwishlist:mylist' %}";
         fetch(`${base_url}${isbn13}/`, {
             method: 'PATCH',
@@ -122,10 +148,10 @@
                         console.log(data);
                         document.getElementById(isbn13).style.opacity = readYn ? '0.5' : '1';
                         document.getElementById(`${isbn13}-footer`).innerText  = readYn ? `읽은 날짜 : ${data.result_data.readDate}` : `저장한 시간: ${Date(data.result_data.created_at)})`;
-                        alert('도서 정보가 성공적으로 저장되었습니다.');
+                        showToast(message='도서 정보가 성공적으로 저장되었습니다.');
                     } else {
+                        showToast(message='도서 정보 저장 중 오류가 발생했습니다.');
                         console.error('도서 정보 저장 중 오류가 발생했습니다.');
-                        // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
                     }
                 });
             } else {
@@ -157,10 +183,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.status.code === 'S') {
-                console.log('도서 정보가 성공적으로 삭제되었습니다.');
+                showToast(message='도서 정보가 성공적으로 삭제되었습니다.');
                 document.getElementById(isbn13).remove();
             } else {
-                console.error('도서 정보 저장 중 오류가 발생했습니다.');
+                showToast(message='도서 정보 저장 중 오류가 발생했습니다.');
                 // 'S'가 아닌 다른 상태 코드에 대한 오류 처리를 수행할 수 있습니다.
             }
         })

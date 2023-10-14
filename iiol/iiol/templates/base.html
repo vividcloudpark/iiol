@@ -1,21 +1,28 @@
 {% load django_bootstrap5 %}
 {%  bootstrap_css %}
 {%  bootstrap_javascript %}
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0"/>
 
     <title>IIOL, 이올</title>
+    <link rel="stylesheet" type="text/css" href="{% static "css/toastify-min.1.12.0.css" %}">
+    
     <style type="text/css">
         .navbar-brand
         {
             font-size: xx-large;
         }
     </style>
+    <script type="text/javascript" src="{% static "js/toastify-js.1.12.0.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/ToastManager.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/AuthManager.js" %}"></script>
 </head>
 
 <body>
@@ -44,17 +51,39 @@
         </div>
     </nav>
     <div class="container">
-        {% if messages %}
-            <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
+        <div class="toast-container position-absolute top-0 end-0 p-3">
+            {% if messages %}
+                {% for message in messages %}
+                    {% include "toast.html" with toast_header=message.tags toast_msg=message %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div id="return_div" data-status-value="{{ status }}"></div>
+
         {% block content %}
+
+
+
 
         {% endblock content %}
     </div>
 </body>
-
 </html>
+
+<script>
+    const returnStatusCode = "{{ status.code }}";
+    const returnStatusMsg = "{{ status.msg }}";
+    console.log(returnStatusCode, returnStatusMsg);
+    try{
+        if ((returnStatusCode != null) && (returnStatusCode != "") &&
+            ((returnStatusCode == 'S' && returnStatusMsg != "") ||
+            (returnStatusCode != 'S'))) {
+            showToast(message = returnStatusMsg)
+        }
+    }catch (err){
+        console.log(err)
+    }
+
+
+</script>
+

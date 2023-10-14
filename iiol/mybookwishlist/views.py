@@ -1,11 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from iiol.authentication import JWTCookieAuthentication
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
-from .models import MybookWishlist
-from .serializers import MybookWishlistSerializer, UserSerializer
+from .models import MybookWishlist, MybookWishlistGroup
+from .serializers import MybookWishlistSerializer, MybookWishlistGroupSerializer
 from rest_framework.response import Response  
 from django.conf import settings
 from rest_framework import status
@@ -15,7 +13,7 @@ from rest_framework import viewsets
 from django.db.models import Q
 import datetime
 from django.contrib.auth import get_user_model
-
+from django.contrib import messages
 from iiol.authentication import JWTLoginRequiredMixin
 
 User = get_user_model()
@@ -52,16 +50,23 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
 
     def list(self, request):
         self.request = request
-        self.return_json = None
         self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
         # if request.accepts('application/json'):
         #     self.response_type = 'json'
         qs = MybookWishlist.objects.all()\
             .filter(user=request.user.pk, DELETED=False).order_by("-updated_at").select_related("isbn13")
-        if not qs:
-            return self.response_with_type('S', '앗, 아직 저장하신 데이터가 없는것 같은데요...', RESTCode=status.HTTP_204_NO_CONTENT)
+        if not qs.exists():
+            return self.response_with_type('S', 'Nothing...', RESTCode=status.HTTP_204_NO_CONTENT)
         serializer = MybookWishlistSerializer(qs, many=True)
-        self.return_json['result_data'] = serializer.data
+        self.return_json['result_data']['data'] = serializer.data
+
+        qs_group_dict = {}
+        group_qs = MybookWishlistGroup.objects.all() \
+            .filter(user=request.user.pk, DELETED=False).values('pk', 'name')
+        if group_qs.exists():
+            qs_group_dict = MybookWishlistGroupSerializer(group_qs, many=True).data
+
+        self.return_json['result_data']['groupname'] = qs_group_dict
         return self.response_with_type('S', '')
 
     def create(self, request):
@@ -92,6 +97,7 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
                 return self.response_with_type('S', '성공적으로 MyBookwishlist에 추가했습니다!', RESTCode=status.HTTP_201_CREATED)
             else:
                 return self.response_with_type('E', str(serializer.errors), RESTCode=status.HTTP_400_BAD_REQUEST)
+
     def partial_update(self, request, pk):
         self.request = request
         self.return_json = {'status': {'code': "", 'msg': ""}, 'result_data': {}}
@@ -108,10 +114,11 @@ class MybookWishListViewSet(JWTLoginRequiredMixin, viewsets.ViewSet):
         if serializer.is_valid():
             serializer.save()
             self.return_json['result_data'] = serializer.data
+            
             return self.response_with_type('S', '정보 수정에 성공했습니다.', RESTCode=status.HTTP_201_CREATED)
         else:
             print(serializer.errors)
-        return self.response_with_type('E', serializer.errors, RESTCode=status.HTTP_400_BAD_REQUEST)
+        return self.response_with_type('E', serializer.errors, RESTCodㅍe=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
         self.request = request

@@ -27,7 +27,7 @@
             </div>
     </div>
 </div>
-<script type="text/javascript" src="{% static "js/getCookie.js" %}"></script>
+
 <script>
     function add_mybook() {
         let apiUrl = '{% url 'mybookwishlist:mylist' %}';
@@ -46,10 +46,10 @@
         .then(response => response.json())
         .then(data => {
             console.log(data)
-            alert(data.status.msg)
-            // HTTP 상태 코드 확인
+            showToast(data.status.msg);
             if (data.status.code == "E") {
-                throw new Error(JSON.stringify(data.status.msg));
+                errmsg = data.status.msg;
+                throw new Error(errmsg);
             }
         })
         .catch(error => {
@@ -57,7 +57,22 @@
         });
     }
 
-    document.getElementById('add-to-mybookwishlist').addEventListener('click', add_mybook);
+    async function checkLoginAndAddMybook(){
+        try{
+            const LoginApiUrl = '{% url 'accounts:login' %}';
+            const logined = await isLogined(LoginApiUrl);
+            if (logined){
+                add_mybook();
+            } else{
+                showToast(message="로그인이 필요합니다.");
+                throw new Error("로그인이 필요합니다.");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    document.getElementById('add-to-mybookwishlist').addEventListener('click', checkLoginAndAddMybook);
 </script>
 
 <script>
@@ -73,14 +88,12 @@
     })
     .then(jsonData=> {
         regionJson = jsonData;
-        console.warn(jsonData);
         let small_region_code = document.getElementById('region_code').innerText;
         let big_region_code = small_region_code.substring(0,2);
         let big_region_name = jsonData['big'][big_region_code];
-        console.log(big_region_code, big_region_name);
         let small_region_name = jsonData['small'][big_region_code][small_region_code];
         document.getElementById('region_code').innerText = `${big_region_name}  ${small_region_name}에 있는 도서관 결과`;
-        //지역코드 - 대분류 추
+        //지역코드 - 대분류 추가
     })
 </script>
 {% endblock%}
