@@ -5,33 +5,84 @@
 {%  bootstrap_javascript %}
 
 {% block content %}
+
 <div class="container col-md-8">
     <div class="card mt-5">
 
     <button class="btn btn-outline-secondary save-button"><a href="{%  url 'barcode:barcode_root' %}">추가하러 가기</a></button>
 
+
+
     <!-- 분류 버튼 -->
     <div class="btn-group" role="group" aria-label="분류 선택">
         <button id = "group_btn_all" type="button" class="btn btn-dark">전체</button>
-        <button id = "group_btn_nogroup" type="button" class="btn btn-success">분류 없음</button>
         <div class="btn-group" role="group">
         <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            사용자 분류 ( {{ result_data.groupname|length }} )
+            사용자 분류 ( {{ result_data.groupname|length  }} )
             <ul class="dropdown-menu">
                 {% for groupobj in result_data.groupname %}
-                    <li id = "group_btn_{{ groupobj.pk }}"><a class="dropdown-item" href="#">{{ groupobj.name }}</a></li>
+                    <li id = "group_btn_{{ groupobj.pk }}"><a class="dropdown-item" href="{% url 'mybookwishlist:mylist' %}?groupPk={{groupobj.pk}}">{{ groupobj.name }}</a></li>
                 {% endfor %}
+                <li id = "group_btn_nogroup"><a class="dropdown-item" href="#">분류없음</a>
+                
+                </li>
             </ul>
         </button>
         </div>
-        <button id = "group_btn_nogroup" type="button" class="btn btn-info">새 분류</button>
+        <button id = "group_btn_newgroup" type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#newGroupModal">새 분류</button>
     </div>
     <!-- 분류 버튼 끝 -->
 
+    <!-- 모달 -->
+    <div class="modal" id="newGroupModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">새 분류 추가</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" data-bs-target="#newGroupModal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="group_btn_newgroup_name" class="form-control" placeholder="새로운 분류 이름" aria-label="NewGroup" aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-target="#newGroupModal" data-bs-dismiss="modal">닫기</button>
+              <button type="button" id="group_btn_newgroup_btn" class="btn btn-primary">저장하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- 모달 끝 -->
 
-    {% if status.msg != None %}
-        <div>{{ status.msg }}</div>
-    {% endif %}
+
+    <!-- 분류변경 모달 -->
+    <div class="modal" id="GroupChangeModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">분류 변경 </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" data-bs-target="#GroupChangeModal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <select name="group_change" id="selectbox_group_change">
+                    {% for groupobj in result_data.groupname %}
+                        <option value={{ groupobj.pk }}>{{ groupobj.name }}</option>
+                    {% endfor %}
+                        <option value="None">분류없음</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-target="#GroupChangeModal" data-bs-dismiss="modal">닫기</button>
+                <button type="button" id="group_change_modal_save_btn" class="btn btn-primary">저장하기</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    <!-- 모달 끝 -->
+
+
+    <div id='booklist'>
 
     {% for mybookwish in result_data.data %}
         {% if mybookwish.readYn == True %}
@@ -42,19 +93,26 @@
             <div class="card-header">
                 {#                <a href="{% url 'book_detail' mybookwish.book.id %}">{{ mybookwish.book.bookname }}</a> ({{ mybookwish.isbn13 }})#}
                 {#                TODO : 제목 클리하면 책 디테일로 이동하게 만들기#}
+                <div>
+                    <span id ="{{ mybookwish.isbn13 }}_{{ mybookwish.groupPk}}" class="badge bg-dark m=1 isbn_group_btn">
+                        {%  if mybookwish.groupname != None %}
+                            {{ mybookwish.groupname }}
+                        {% else %}
+                            분류없음
+                        {% endif %}
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><style>svg{fill:#ffffff}</style><path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152V424c0 48.6 39.4 88 88 88H360c48.6 0 88-39.4 88-88V312c0-13.3-10.7-24-24-24s-24 10.7-24 24V424c0 22.1-17.9 40-40 40H88c-22.1 0-40-17.9-40-40V152c0-22.1 17.9-40 40-40H200c13.3 0 24-10.7 24-24s-10.7-24-24-24H88z"/></svg>
+                    </span>
+                        <span class="badge bg-secondary">{{ mybookwish.book.isbn13 }}</span>
+                </div>
 
                 <blockquote class="blockquote text-left">
-                    {%  if mybookwish.groupname == None %}
-                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in 분류없음 </p>
-                    {% else %}
-                        <p>{{ mybookwish.book.bookname }} ( {{mybookwish.isbn13}} ) in {{ mybookwish.groupname }}</p>
-                    {% endif %}
-
+                    
+                    <p>{{ mybookwish.book.bookname }}</p>
 
                     {% if mybookwish.readYn == True %}
-                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">읽은 날짜 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime" >{{ mybookwish.readDate}}</cite></footer>
+                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">읽은 날짜 : <cite id="{{ mybookwish.isbn13 }}-readtime" >{{ mybookwish.readDate}}</cite></footer>
                     {% else %}
-                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">저장한 시간 : <cite title="Source Title" id="{{ mybookwish.isbn13 }}-readtime">{{ mybookwish.created_at}}</cite></footer>
+                        <footer class="blockquote-footer" id="{{ mybookwish.isbn13 }}-footer">저장한 시간 : <cite id="{{ mybookwish.isbn13 }}-readtime">{{ mybookwish.created_at}}</cite></footer>
                     {% endif %}
 
                 </blockquote>
@@ -63,7 +121,7 @@
             <div class="card-body d-flex">
                 <div class="item p-2"><img src="{{ mybookwish.book.bookImageURL }}" height="200"></div>
                 <div class="item p-2 input-group">
-                    <div class="input-group ">
+                    <div class="input-group">
                         <div class="input-group-prepend d-flex align-items-stretch">
                             <span class="input-group-text" id="{{ mybookwish.isbn13 }}-input_context_label">WHEN</span>
                         </div>
@@ -86,44 +144,356 @@
                                 <input id="{{ mybookwish.isbn13 }}-readYn" class="form-check-input mt-0" type="checkbox" value="{{ mybookwish.readYn }}" aria-label="Checkbox for following text input">
                             {% endif %}
                         </div>
-                        <button class="btn btn-outline-secondary save-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">저장</button>
-                        <button class="btn btn-outline-secondary delete-button" type="button" data-book-id="{{ mybookwish.isbn13 }}">삭제</button>
+                        <button class="btn btn-outline-secondary save-button" type="button" data-isbn13="{{ mybookwish.isbn13 }}">저장</button>
+                        <button class="btn btn-outline-secondary delete-button" type="button" data-isbn13="{{ mybookwish.isbn13 }}">삭제</button>
                     </div>
                 </div>
             </div>
         </div>
     {% endfor %}
+    </div>
 
     </div>
 </div>
 
+{{ result_data|json_script:"myvalue" }}
+
 
 <script>
-    {% comment %} if (document.querySelectorAll('.save-button').length == 0){
+
+{% comment %} 
+    const addGroupBtn = document.getElementById('group_btn_newgroup');
+
+    addGroupBtn.addEventListener('click', () => {
+        var myModalEl = document.querySelector('#addGroupModal')
+        var modal = bootstrap.Modal.getOrCreateInstance(myModalEl) 
+    });
+    
+     {% endcomment %}
+
+
+    const returnValue = JSON.parse(document.getElementById('myvalue').textContent);
+
+
+    if (returnValue.data.length == 0){
         showToast(message="앗, 저장된 책이 없는것 같습니다. \n 도서 검색을 통해 Mybookwishlist를 채워볼까요? ");
-    } {% endcomment %}
+    }
     
     document.addEventListener('DOMContentLoaded', () => {
         // "저장하기" 버튼을 클릭할 때 실행되는 함수
         document.querySelectorAll('.save-button').forEach(button => {
             button.addEventListener('click', () => {
-                update(button)
+                update(button.dataset.isbn13)
             });
         });
         document.querySelectorAll('.delete-button').forEach(button => {
             button.addEventListener('click', () => {
-                destroy(button)
+                destroy(button.dataset.isbn13)
             });
         });
+
+
+        //신규그룹 모달버튼
+        document.getElementById('group_btn_newgroup_btn').addEventListener('click', () => {
+            const name = document.getElementById("group_btn_newgroup_name").value;
+            create_group(name);
+            var myModal = bootstrap.Modal.getInstance(document.getElementById('newGroupModal'));
+            myModal.toggle();
+        });
+
+        //그룹 변경 모달 오픈
+        document.querySelectorAll('.isbn_group_btn').forEach(button => {
+            button.addEventListener('click', () => {
+                open_change_modal(button);
+            });
+        });
+        
+        document.getElementById('group_change_modal_save_btn').addEventListener('click', () => {
+            const isbn13 = document.getElementById('group_change_modal_save_btn').dataset.isbn13;
+            const groupPk =  document.getElementById("selectbox_group_change").value;
+            console.log(groupPk);
+            
+            update({isbn13:isbn13, groupPk:groupPk})
+        });
+
+
+        
+        document.getElementById('group_btn_all').addEventListener('click', () => {
+            filter_by_groupPk('All');
+        });
+
+        document.getElementById('group_btn_nogroup').addEventListener('click', () => {
+            filter_by_groupPk(null);
+        });
+
+        
+        returnValue.groupname.forEach((groupObj) => {
+            document.getElementById(`group_btn_${groupObj.pk}`).addEventListener('click', () => {
+                filter_by_groupPk(groupObj.pk);
+            });
+        });
+        
+
     });
 
+    function open_change_modal(button){
+        const myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('GroupChangeModal'));
+        let [isbn13, groupPk] = button.id.split('_');
+        
+        const selectArr = document.getElementById("selectbox_group_change");
+        for (let i in selectArr){
+            if (selectArr[i].value == groupPk){
+                selectArr[i].selected=true;
+                break;
+            }
+        }
+        document.getElementById("group_change_modal_save_btn").setAttribute('data-isbn13', isbn13);
+        myModal.toggle();
+    }
 
-    function update(button){
-        const isbn13 = button.dataset.bookId;
-        const inputContext = document.getElementById(`${isbn13}-input_context`).value;
-        const memo = document.getElementById(`${isbn13}-memo`).value;
-        const readYn = document.getElementById(`${isbn13}-readYn`).checked;
+    
 
+    function filter_by_groupPk(groupPK='All'){
+        document.getElementById('booklist').replaceChildren();
+        let booklist = returnValue.data;
+        if (groupPK != 'All'){
+            booklist = booklist.filter((data) => data.groupPk == groupPK );
+        }
+        if (booklist.length == 0){
+            showToast("해당 분류에는 책이 없습니다.");
+            return;
+        }
+        booklist.forEach(book => add_card(book));
+    }
+
+    
+    function make_card_header(mybookwish){
+        //카드헤더 
+       const card_header = document.createElement('div');
+       card_header.setAttribute("class", "card-header");
+
+
+       const card_header_div_badge = document.createElement('div');
+       const card_header_groupname = document.createElement('span');
+       mybookwish.groupPk == null ? mybookwish.groupPk = "None" : null;
+       card_header_groupname.setAttribute("id", `${mybookwish.isbn13 }_${mybookwish.groupPk }`); 
+       card_header_groupname.setAttribute("class", "badge bg-dark m-1 isbn_group_btn");
+       card_header_groupname.textContent = mybookwish.groupname != null? mybookwish.groupname : "분류없음";
+       card_header_groupname.addEventListener('click', () => {
+            open_change_modal(card_header_groupname);
+        });
+
+       
+       const card_header_isbn = document.createElement('span');
+       card_header_isbn.setAttribute("class", "badge bg-secondary");
+       card_header_isbn.textContent = mybookwish.book.isbn13;
+
+       card_header_div_badge.appendChild(card_header_groupname);
+       card_header_div_badge.appendChild(card_header_isbn);
+       card_header.appendChild(card_header_div_badge);
+
+       
+
+
+
+       const card_header_bookname = document.createElement('blockquote');
+       card_header_bookname.setAttribute("class", "blockquote text-left");
+       
+       const card_header_bookname_p = document.createElement('p');
+       card_header_bookname_p.textContent = mybookwish.book.bookname;
+       
+       const card_header_bookname_footer = document.createElement('footer');
+       card_header_bookname_footer.setAttribute("id", `${ mybookwish.isbn13 }-footer`);
+       card_header_bookname_footer.setAttribute("class", "blockquote-footer");
+
+       const card_header_bookname_footer_cite = document.createElement('cite');
+       card_header_bookname_footer_cite.setAttribute("id", `${mybookwish.isbn13 }-readtime`);
+       
+       if (mybookwish.readYn){
+           card_header_bookname_footer.textContent = "읽은 날짜 : ";
+           card_header_bookname_footer_cite.textContent = mybookwish.readDate;
+       }else{
+           card_header_bookname_footer.textContent = "저장한 시간 : ";
+           console.log(mybookwish.created_at);
+           card_header_bookname_footer_cite.textContent = mybookwish.created_at;
+       }
+
+       card_header_bookname_footer.appendChild(card_header_bookname_footer_cite);
+
+
+       card_header_bookname.appendChild(card_header_bookname_p);
+       card_header_bookname.appendChild(card_header_bookname_footer);
+       card_header.appendChild(card_header_bookname);
+       card_header.appendChild(card_header_bookname);
+       return card_header;
+   }
+
+
+   function make_card_body(mybookwish){
+        //카드이미지 
+        const card_body = document.createElement('div');
+        card_body.setAttribute("class", "card-body d-flex");
+
+        const card_body_div_left = document.createElement('div');
+        card_body_div_left.setAttribute("class", "item p-2");
+
+        const card_body_div_img = document.createElement('img');
+        card_body_div_img.setAttribute("src", mybookwish.book.bookImageURL);
+        card_body_div_img.setAttribute("height", "200");
+
+        card_body.appendChild(card_body_div_left);
+        card_body_div_left.appendChild(card_body_div_img);
+        //카드이미지 끝
+
+        
+        const card_body_div_right = document.createElement('div');
+        card_body_div_right.setAttribute("class", "item p-2 input-group");
+     
+        //WHEN 시작 
+        const card_body_div_right_div0 = document.createElement('div');
+        card_body_div_right_div0.setAttribute("class", "input-group");
+
+        const card_body_div_right_div0_div0 = document.createElement('div');
+        card_body_div_right_div0_div0.setAttribute("class", "input-group-prepend d-flex align-items-stretch");
+
+        const card_body_div_right_div0_div0_span0 = document.createElement('span');
+        card_body_div_right_div0_div0_span0.setAttribute("id", `${ mybookwish.isbn13 }-input_context_label`);
+        card_body_div_right_div0_div0_span0.setAttribute("class", "input-group-text");
+        card_body_div_right_div0_div0_span0.textContent = "WHEN";
+
+        const card_body_div_right_div0_input0 = document.createElement('input');
+        card_body_div_right_div0_input0.setAttribute("id", `${ mybookwish.isbn13 }-input_context`);
+        card_body_div_right_div0_input0.setAttribute("value", `${ mybookwish.input_context }`);
+        card_body_div_right_div0_input0.setAttribute("type", "text");
+        card_body_div_right_div0_input0.setAttribute("class", "form-control");
+        card_body_div_right_div0_input0.setAttribute("placeholder", "");
+        card_body_div_right_div0_input0.setAttribute("aria-label", "input_context");
+        card_body_div_right_div0_input0.setAttribute("aria-describedby", `${ mybookwish.isbn13 }-input_context_label`);
+
+
+        card_body_div_right_div0.appendChild(card_body_div_right_div0_div0);
+        card_body_div_right_div0_div0.appendChild(card_body_div_right_div0_div0_span0);
+        card_body_div_right_div0.appendChild(card_body_div_right_div0_input0);
+        //WHEN 끝, 
+
+        //MEMO 시작 
+        const card_body_div_right_div1 = document.createElement('div');
+        card_body_div_right_div1.setAttribute("class", "input-group input-group-lg");
+
+        const card_body_div_right_div1_div0 = document.createElement('div');
+        card_body_div_right_div1_div0.setAttribute("class", "input-group-prepend d-flex align-items-stretch");
+
+        const card_body_div_right_div1_div0_span0 = document.createElement('span');
+        card_body_div_right_div1_div0_span0.setAttribute("class", "input-group-text");
+        card_body_div_right_div1_div0_span0.textContent = "MEMO";
+
+        const card_body_div_right_div1_textarea = document.createElement('textarea');
+        card_body_div_right_div1_textarea.setAttribute("id", `${ mybookwish.isbn13 }-memo`);
+        card_body_div_right_div1_textarea.setAttribute("class", "form-control");
+        card_body_div_right_div1_textarea.setAttribute("aria-label", "MEMO");
+        card_body_div_right_div1_textarea.textContent = mybookwish.memo;
+
+        card_body_div_right_div1.appendChild(card_body_div_right_div1_div0);
+        card_body_div_right_div1_div0.appendChild(card_body_div_right_div1_div0_span0);
+        card_body_div_right_div1.appendChild(card_body_div_right_div1_textarea);
+        
+        card_body.appendChild(card_body_div_right);
+        card_body_div_right.appendChild(card_body_div_right_div0);
+        card_body_div_right.appendChild(card_body_div_right_div1);
+        //MEMO 끝
+
+        //버튼시작
+        const card_body_div_right_div2 = document.createElement('div');
+        card_body_div_right_div2.setAttribute("class", "input-group d-flex");
+
+        const card_body_div_right_div2_div0 = document.createElement('div');
+        card_body_div_right_div2_div0.setAttribute("class", "input-group-prepend d-flex align-items-stretch");
+
+        const card_body_div_right_div2_div0_span0 = document.createElement('span');
+        card_body_div_right_div2_div0_span0.setAttribute("class", "input-group-text");
+        card_body_div_right_div2_div0_span0.textContent = "읽었어요!";
+
+        const card_body_div_right_div2_div1 = document.createElement('div');
+        card_body_div_right_div2_div1.setAttribute("class", "input-group-text");
+
+        const card_body_div_right_div2_div1_input = document.createElement('input');
+        card_body_div_right_div2_div1_input.setAttribute("id", `${ mybookwish.isbn13}-readYn `);
+        card_body_div_right_div2_div1_input.setAttribute("class", "form-check-input mt-0");
+        card_body_div_right_div2_div1_input.setAttribute("type", "checkbox");
+        card_body_div_right_div2_div1_input.setAttribute("value", mybookwish.readYn);
+        mybookwish.readYn ? card_body_div_right_div2_div1_input.setAttribute("checked") : null;
+        
+
+        const card_body_div_right_div2_div1_button0 = document.createElement('button');
+        card_body_div_right_div2_div1_button0.setAttribute("class", "btn btn-outline-secondary save-button");
+        card_body_div_right_div2_div1_button0.setAttribute("type", "button");
+        card_body_div_right_div2_div1_button0.setAttribute("data-book-id", mybookwish.isbn13 );
+        card_body_div_right_div2_div1_button0.textContent = "저장";
+
+        const card_body_div_right_div2_div1_button1 = document.createElement('button');
+        card_body_div_right_div2_div1_button1.setAttribute("class", "btn btn-outline-secondary delete-button");
+        card_body_div_right_div2_div1_button1.setAttribute("type", "button");
+        card_body_div_right_div2_div1_button1.setAttribute("data-book-id", mybookwish.isbn13 );
+        card_body_div_right_div2_div1_button1.textContent = "삭제";
+    
+
+        card_body_div_right_div2.appendChild(card_body_div_right_div2_div0);
+        card_body_div_right_div2_div0.appendChild(card_body_div_right_div2_div0_span0);
+        card_body_div_right_div2.appendChild(card_body_div_right_div2_div1);
+        
+        card_body_div_right_div2_div1.appendChild(card_body_div_right_div2_div1_input);
+        card_body_div_right_div2.appendChild(card_body_div_right_div2_div1_button0);
+        card_body_div_right_div2.appendChild(card_body_div_right_div2_div1_button1);
+
+
+        card_body.appendChild(card_body_div_right);
+        card_body_div_right.appendChild(card_body_div_right_div0);
+        card_body_div_right.appendChild(card_body_div_right_div1);
+        card_body_div_right.appendChild(card_body_div_right_div2);
+        //MEMO 끝
+        return card_body;
+    }
+
+
+    function add_card(mybookwish){
+        
+        const card = document.createElement('div');
+        card.setAttribute("id", mybookwish.isbn13);
+        
+        if (mybookwish.groupPk == null){
+            card.setAttribute("class", `card mb-2 group-pk-null`);
+        }else{
+            card.setAttribute("class", `card mb-2 group-pk-${mybookwish.groupPk}`);
+        }
+        mybookwish.readYn ? card.setAttribute("style", "opacity: 50%;") : null;
+
+        
+        card.appendChild(make_card_header(mybookwish));
+        card.appendChild(make_card_body(mybookwish));
+        
+
+        document.getElementById('booklist').appendChild(card);
+        
+        return;
+      
+    }
+    
+    
+
+
+    function update({isbn13, groupPk=undefined}){
+        const bodyObj = {
+            isbn13: isbn13,
+        };
+
+        if (groupPk != undefined ){
+            bodyObj.groupPk = groupPk;
+        }else{
+            bodyObj.input_context = document.getElementById(`${isbn13}-input_context`).value;
+            bodyObj.memo = document.getElementById(`${isbn13}-memo`).value;
+            bodyObj.readYn = document.getElementById(`${isbn13}-readYn`).checked;
+        }
+        
         const base_url = "{% url 'mybookwishlist:mylist' %}";
         fetch(`${base_url}${isbn13}/`, {
             method: 'PATCH',
@@ -133,12 +503,7 @@
                 "Accept": "application/json",
             },
             credentials: "same-origin",
-            body: JSON.stringify({
-                isbn13: isbn13,
-                input_context: inputContext,
-                memo: memo,
-                readYn: readYn,
-            }),
+            body: JSON.stringify(bodyObj),
         })
        .then(response => {
             if (response.ok) {
@@ -164,8 +529,7 @@
         });
     }
 
-     function destroy(button){
-        const isbn13 = button.dataset.bookId;
+    function destroy(isbn13){
         const base_url = "{% url 'mybookwishlist:mylist' %}";
         fetch(`${base_url}${isbn13}/`, {
             method: 'DELETE',
@@ -194,6 +558,30 @@
             console.error('오류 발생:', error);
         });
     }
+
+    function create_group(groupname){
+        const base_url = "{% url 'mybookwishlist:mylist_group_create' %}";
+        fetch(`${base_url}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                name: groupname,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            showToast(message=data.status.msg, statusCode=data.status.code);
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+        });
+    }
+
 
 
 </script>

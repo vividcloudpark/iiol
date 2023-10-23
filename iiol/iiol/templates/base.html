@@ -78,10 +78,10 @@
         if ((returnStatusCode != null) && (returnStatusCode != "") &&
             ((returnStatusCode == 'S' && returnStatusMsg != "") ||
             (returnStatusCode != 'S'))) {
-            showToast(message = returnStatusMsg)
+            showToast(message = returnStatusMsg, statusCode=returnStatusCode);
         }
     }catch (err){
-        console.log(err)
+        console.log(err);
     }
 
 

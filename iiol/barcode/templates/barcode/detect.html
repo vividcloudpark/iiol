@@ -67,7 +67,6 @@
 
 
 
-<script type="text/javascript" src="{% static "js/AuthManager.js" %}"></script>
 <script type="text/javascript" src="{% static "barcode/js/RegionJsonManger.js" %}"></script>
 <script>
     
@@ -99,7 +98,7 @@
             }
         } catch (err) {
             showToast(message='도서관 지역 설정이 불편하지 않으세요? \n 회원가입시 기본 지역을 설정할 수 있습니다! (클릭)📝',
-                        url = UserSignUpUrl);
+                        url = LoginApiUrl);
             console.error(err);
         }
     }

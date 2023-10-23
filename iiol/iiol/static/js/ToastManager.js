@@ -1,4 +1,5 @@
-function showToast(message, url, callbackFn){
+function showToast({message, url, callbackFn, statusCode='S'}){
+    backgroundColor = statusCode == 'S' ? "linear-gradient(to left, #00359b, #519d)" : "linear-gradient(to left, #923f62, #921f)";
     Toastify({
         text: message,
         duration: 3000,
@@ -13,7 +14,7 @@ function showToast(message, url, callbackFn){
             y : "2.5em"
         },
         style: {
-          background: "linear-gradient(to left, #00359b, #519d)",
+          background: backgroundColor,
         },
         onClick: () => callbackFn // Callback after click
     }).showToast();

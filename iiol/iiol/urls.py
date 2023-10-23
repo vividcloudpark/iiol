@@ -18,25 +18,30 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 import barcode.views as barcode_view
-from drf_spectacular.views import SpectacularJSONAPIView,SpectacularYAMLAPIView, SpectacularSwaggerView, SpectacularRedocView
+import iiol.views as iiol_view
+from drf_spectacular.views import (
+    SpectacularJSONAPIView,
+    SpectacularYAMLAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 from django.urls import path, re_path
 
 
-app_name = 'iiol'
-site_prefix = f'^{settings.FORCE_SCRIPT_NAME[1:]}(.*)$'
+app_name = "iiol"
+site_prefix = f"^{settings.FORCE_SCRIPT_NAME[1:]}(.*)$"
 
 urlpatterns = [
-    path('', barcode_view.detect_page),
-    path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')),
-    path('accounts/', include('accounts.urls')),
-    path('barcode/', include('barcode.urls')),
-    path('library/', include('library.urls')),
-    path('books/', include('books.urls')),
-    path('mybookwishlist/', include('mybookwishlist.urls')),
-
+    path("", barcode_view.detect_page),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("accounts/", include("accounts.urls")),
+    path("barcode/", include("barcode.urls")),
+    path("library/", include("library.urls")),
+    path("books/", include("books.urls")),
+    path("mybookwishlist/", include("mybookwishlist.urls")),
+    path("healthcheck/", iiol_view.health_check),
 ]
-
 
 
 urlpatterns += [
@@ -44,22 +49,27 @@ urlpatterns += [
     path("docs/json/", SpectacularJSONAPIView.as_view(), name="schema-json"),
     path("docs/yaml/", SpectacularYAMLAPIView.as_view(), name="swagger-yaml"),
     # Open API Document UI로 조회: Swagger, Redoc
-    path("docs/swagger/", SpectacularSwaggerView.as_view(url_name="schema-json"), name="swagger-ui", ),
-    path("docs/redoc/", SpectacularRedocView.as_view(url_name="schema-json"), name="redoc", ),
-
+    path(
+        "docs/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema-json"),
+        name="swagger-ui",
+    ),
+    path(
+        "docs/redoc/",
+        SpectacularRedocView.as_view(url_name="schema-json"),
+        name="redoc",
+    ),
     # ...
 ]
 
-urlpatterns += static(settings.MEDIA_URL,
-                      document_root=settings.MEDIA_ROOT)
-urlpatterns += static('static/',
-                      document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.STATIC_URL,
-                      document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static("static/", document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns += [
-        path('__debug__/', include(debug_toolbar.urls)),
+        path("__debug__/", include(debug_toolbar.urls)),
     ]

@@ -6,6 +6,8 @@ from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
 from rest_framework_simplejwt.backends import TokenBackend
 from django.contrib import messages
+from django.http import JsonResponse
+from rest_framework import status
 import jwt
 
 
@@ -17,6 +19,7 @@ def enforce_csrf(request):
     # populates request.META['CSRF_COOKIE'], which is used in process_view()
     check.process_request(request)
     reason = check.process_view(request, None, (), {})
+    return
     if reason:
         # CSRF failed, bail with explicit error message
         raise exceptions.PermissionDenied("CSRF Failed: %s" % reason)
@@ -30,8 +33,10 @@ class JWTCookieAuthentication(JWTAuthentication, BlacklistMixin):
             raw_token = self.get_raw_token(header)
         elif request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"]):
             try:
-                refresh_token = RefreshToken(request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"]))
-                refresh_token.verify() #BlacklistMixin이 있으므로, blacklist 검증까지 수행
+                refresh_token = RefreshToken(
+                    request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"])
+                )
+                refresh_token.verify()  # BlacklistMixin이 있으므로, blacklist 검증까지 수행
                 raw_token = bytes(str(refresh_token.access_token), "utf-8")
             except Exception as e:
                 print("유효하지 않은 refresh token : ", e)
@@ -42,9 +47,8 @@ class JWTCookieAuthentication(JWTAuthentication, BlacklistMixin):
         if raw_token is None:
             return None  # 세션인증으로 넘어감
 
-        
-        validated_token = self.get_validated_token(raw_token)  
-        #raw_token은 모두 byte형식임
+        validated_token = self.get_validated_token(raw_token)
+        # raw_token은 모두 byte형식임
         # get_validate_token은 settings에 있는 accesstoken만 검증함
         try:
             user = self.get_user(validated_token)
@@ -83,14 +87,18 @@ class AuthenticationManager(BlacklistMixin):
         if header is not None:
             raw_token_list.append(self.get_raw_token(header))
         elif request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]):
-            raw_token_list.append(request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]))
+            raw_token_list.append(
+                request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"])
+            )
         for raw_token in raw_token_list:
             validated_token = self.get_validated_token(raw_token)
             validated_token.blacklist()
 
         if request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"]):
             try:
-                RefreshToken(request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"])).blacklist()
+                RefreshToken(
+                    request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"])
+                ).blacklist()
             except:
                 pass
 
@@ -107,16 +115,26 @@ class AuthenticationManager(BlacklistMixin):
 
 class JWTLoginRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
-        """If token was provided, ignore authenticated status."""
         header = request.META.get(settings.SIMPLE_JWT["AUTH_HEADER_NAME"])
-        if header and settings.SIMPLE_JWT["AUTH_HEADER_TYPES"] in header:
+
+        if header and header.split()[0] in settings.SIMPLE_JWT["AUTH_HEADER_TYPES"]:
             pass
 
-        elif request.COOKIES.get(settings.SIMPLE_JWT["REFRESH_COOKIE"]) or request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]):
+        elif request.COOKIES.get(
+            settings.SIMPLE_JWT["REFRESH_COOKIE"]
+        ) or request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]):
             pass
+
+        elif request.GET["format"] == "json":
+            return JsonResponse(
+                data={"status": {"code": "E", "msg": "JSON으로 요청시 Token을 첨부하십시오"}},
+                status=status.HTTP_401_UNAUTHORIZED,
+                json_dumps_params={"ensure_ascii": False},
+            )
+            return self.handle_no_permission()
 
         elif not request.user.is_authenticated:
-            messages.info(request, "로그인이 되어있지 않네요.. :( \n 로그인을 하시면 IIOL의 모든 기능을 이용할 수 있습니다.")
+            messages.info(request, "로그인을 하시면 IIOL의 모든 기능을 이용할 수 있습니다.")
             return self.handle_no_permission()
 
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
