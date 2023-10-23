@@ -29,7 +29,6 @@ from rest_framework_simplejwt.views import token_verify
 # login = LoginView.as_view(template_name="accounts/login_form.html")
 
 
-
 class LoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []  # 인증 안함을 명시적으로 밝힘.
@@ -46,6 +45,7 @@ class LoginView(APIView):
     def response_with_type(self, code, msg, RESTCode=200, JWT_data=None):
         self.set_JSON_header(code, msg)
         self.return_json["result_data"]["JWT"] = JWT_data
+        self.response_type = self.request.query_params.get("format")
         if self.response_type == "json":
             response = JsonResponse(
                 data=self.return_json,
@@ -76,8 +76,6 @@ class LoginView(APIView):
             )
         return response
 
-
-
     def head(self, request, format=None):
         self.response_type = "json"
         if AuthManager.is_logined(request):
@@ -86,7 +84,6 @@ class LoginView(APIView):
             return Response(status=401)
 
     def get(self, request, format=None):
-
         if AuthManager.is_logined(request):
             messages.success(request, "이미 로그인 되어있었습니다!")
             return self.response_with_type("S", "이미 로그인 되어있었습니다!")
@@ -162,6 +159,7 @@ class CurrentUserView(JWTLoginRequiredMixin, APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
 
 @login_required
 def profile_edit(request):

@@ -36,6 +36,9 @@ ALLOWED_HOSTS = [
     "iiol.thecloudpark.xyz",
     "iiol-d.thecloudpark.xyz",
     "192.168.0.0/16",
+    "150.230.251.81",  # Oracle로드밸런서 공인IP
+    "10.0.0.182",  # instance 사설IP
+    "129.154.54.46",  # 인스턴스 공인IP
 ]
 
 
@@ -54,8 +57,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_bootstrap5",
-    "debug_toolbar",
     "drf_spectacular",
+    "corsheaders",
     # Myapps
     "iiol",
     "accounts",
@@ -67,7 +70,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -146,6 +149,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "500/hour",
@@ -223,7 +227,12 @@ MEDIA_URL = f"/{FORCE_SCRIPT_NAME}/media/"
 # MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-CSRF_TRUSTED_ORIGINS = ["https://thecloudpark.xyz"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://iiol.thecloudpark.xyz",
+    "https://thecloudpark.xyz",
+]
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

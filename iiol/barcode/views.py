@@ -32,12 +32,8 @@ EMPTY_ISBN = "0000000000000"
 
 class BarcodeView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = [
-        SessionAuthentication,
-    ]  # 인증 안함을 명시적으로 밝힘.
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
-    # parser_classes = (MultiPartParser, FormParser)
     bardet = cv2.barcode_BarcodeDetector()
     LibAPI = LibraryApi()
     BOOKINFO_JSON = None

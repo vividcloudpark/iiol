@@ -64,10 +64,10 @@
             if (logined){
                 add_mybook();
             } else{
-                showToast(message="로그인이 필요합니다.");
                 throw new Error("로그인이 필요합니다.");
             }
         } catch (err) {
+            showToast(message="로그인이 필요합니다.");
             console.error(err);
         }
     }
