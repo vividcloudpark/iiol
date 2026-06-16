@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 // Interfaces for our application state
 interface Book {
@@ -34,104 +35,12 @@ interface WishItem {
   isRead: boolean;
 }
 
-// Mock Database of Books
-const MOCK_BOOKS: Record<string, Book> = {
-  '9791158392239': {
-    isbn13: '9791158392239',
-    title: '모던 자바스크립트 Deep Dive',
-    author: '이웅모',
-    publisher: '위키북스',
-    pubYear: '2020',
-    coverUrl: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?q=80&w=300&auto=format&fit=crop',
-    desc: '자바스크립트의 기본 개념과 동작 원리를 깊이 있게 학습할 수 있는 명저입니다. 웹 개발자를 위한 정석 도서.',
-    loanStats: {
-      male: 42,
-      female: 58,
-      ageGroups: [
-        { age: '20대', pct: 48 },
-        { age: '30대', pct: 32 },
-        { age: '40대', pct: 15 },
-        { age: '기타', pct: 5 }
-      ],
-      recommendations: [
-        { title: '러닝 리액트 (Learning React)', isbn: '9791162243770' },
-        { title: '타입스크립트 프로그래밍', isbn: '9791162243138' }
-      ]
-    }
-  },
-  '9788966260959': {
-    isbn13: '9788966260959',
-    title: 'Clean Code (클린 코드)',
-    author: '로버트 C. 마틴',
-    publisher: '인사이트',
-    pubYear: '2013',
-    coverUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=300&auto=format&fit=crop',
-    desc: '깨끗한 코드를 작성하는 원칙과 모범 사례를 소개합니다. 애자일 소프트웨어 장인 정신의 에센스.',
-    loanStats: {
-      male: 65,
-      female: 35,
-      ageGroups: [
-        { age: '30대', pct: 50 },
-        { age: '20대', pct: 30 },
-        { age: '40대', pct: 15 },
-        { age: '기타', pct: 5 }
-      ],
-      recommendations: [
-        { title: '리팩터링 2판', isbn: '9791162242025' },
-        { title: '클린 아키텍처: 소프트웨어 구조와 설계', isbn: '9788966262472' }
-      ]
-    }
-  },
-  '9791162244197': {
-    isbn13: '9791162244197',
-    title: '만들면서 배우는 클린 아키텍처',
-    author: '톰 홈버그',
-    publisher: '한빛미디어',
-    pubYear: '2021',
-    coverUrl: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?q=80&w=300&auto=format&fit=crop',
-    desc: '도메인 중심 설계 및 포트와 어댑터 아키텍처를 실용적인 예제 코드를 통해 쉽게 풀어냅니다.',
-    loanStats: {
-      male: 55,
-      female: 45,
-      ageGroups: [
-        { age: '20대', pct: 40 },
-        { age: '30대', pct: 45 },
-        { age: '40대', pct: 10 },
-        { age: '기타', pct: 5 }
-      ],
-      recommendations: [
-        { title: 'Clean Code (클린 코드)', isbn: '9788966260959' },
-        { title: '도메인 주도 설계 핵심', isbn: '9791158390754' }
-      ]
-    }
-  }
-};
-
-// Mock Database of Libraries by Region
-const MOCK_LIBRARIES: Record<string, LibraryStatus[]> = {
-  'seoul-gangnam': [
-    { name: '강남구립도서관 (본관)', code: 'L001', hasBook: true, loanAvailable: true, location: '서울특별시 강남구 선릉로' },
-    { name: '대치도서관', code: 'L002', hasBook: true, loanAvailable: false, location: '서울특별시 강남구 삼성로' },
-    { name: '도곡정보문화도서관', code: 'L003', hasBook: false, loanAvailable: false, location: '서울특별시 강남구 도곡로' },
-    { name: '논현도서관', code: 'L004', hasBook: true, loanAvailable: true, location: '서울특별시 강남구 학동로' }
-  ],
-  'seoul-seocho': [
-    { name: '서초문화예술도서관', code: 'L101', hasBook: true, loanAvailable: true, location: '서울특별시 서초구 강남대로' },
-    { name: '반포도서관', code: 'L102', hasBook: false, loanAvailable: false, location: '서울특별시 서초구 고무래로' },
-    { name: '서초구립양재도서관', code: 'L103', hasBook: true, loanAvailable: false, location: '서울특별시 서초구 양재천로' }
-  ],
-  'gyeonggi-bundang': [
-    { name: '분당도서관', code: 'L201', hasBook: true, loanAvailable: true, location: '경기도 성남시 분당구 불정로' },
-    { name: '서현도서관', code: 'L202', hasBook: true, loanAvailable: true, location: '경기도 성남시 분당구 서현로' },
-    { name: '구미도서관', code: 'L203', hasBook: false, loanAvailable: false, location: '경기도 성남시 분당구 돌마로' },
-    { name: '판교도서관', code: 'L204', hasBook: true, loanAvailable: false, location: '경기도 성남시 분당구 판교역로' }
-  ]
-};
+// Mock Database removed since we use real backend.
 
 function App() {
   // Application states
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('seoul-gangnam');
+  const [selectedRegion, setSelectedRegion] = useState('11230');
   const [currentBook, setCurrentBook] = useState<Book | null>(null);
   const [libraries, setLibraries] = useState<LibraryStatus[]>([]);
   const [loading, setLoading] = useState(false);
@@ -140,7 +49,6 @@ function App() {
   
   // Barcode scanner states
   const [scanning, setScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
   
   // Wishlist states
   const [wishlist, setWishlist] = useState<WishItem[]>([]);
@@ -166,28 +74,41 @@ function App() {
     localStorage.setItem('iiol_wishlist', JSON.stringify(list));
   };
 
-  // Simulate scanning process
+  // Real barcode scanning process using html5-qrcode
   useEffect(() => {
-    let interval: any;
+    let scanner: Html5QrcodeScanner | null = null;
+
     if (scanning) {
-      setScanProgress(0);
-      interval = setInterval(() => {
-        setScanProgress((prev) => {
-          if (prev >= 100) {
-            setScanning(false);
-            clearInterval(interval);
-            // Pick a random ISBN from mock DB
-            const isbns = Object.keys(MOCK_BOOKS);
-            const randomIsbn = isbns[Math.floor(Math.random() * isbns.length)];
-            setSearchQuery(randomIsbn);
-            triggerSearch(randomIsbn);
-            return 100;
+      scanner = new Html5QrcodeScanner(
+        "reader",
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 150 }
+        },
+        false
+      );
+
+      scanner.render(
+        (decodedText) => {
+          // On success
+          if (scanner) {
+            scanner.clear().catch(console.error);
           }
-          return prev + 10;
-        });
-      }, 300);
+          setScanning(false);
+          setSearchQuery(decodedText);
+          triggerSearch(decodedText);
+        },
+        (_error) => {
+          // On error (happens continuously as it tries to find a barcode)
+        }
+      );
     }
-    return () => clearInterval(interval);
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(console.error);
+      }
+    };
   }, [scanning]);
 
   // Handle book search execution
@@ -197,47 +118,89 @@ function App() {
     setLatency(null);
     
     const startTime = performance.now();
-    
-    // Simulating API loading latency
-    // In real app: calls Django backend which either hits Redis or queries Data4Library API
-    const isCached = Math.random() > 0.4; // 60% chance of cache hit simulation
-    const delay = isCached ? 150 : 1200; // Cache hits take ~150ms, live API takes ~1.2s
-    
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    
     const cleanIsbn = isbn.replace(/[-\s]/g, '');
-    const foundBook = MOCK_BOOKS[cleanIsbn];
     
-    const endTime = performance.now();
-    setLatency(Math.round(endTime - startTime));
-    setCacheHit(isCached);
-    setLoading(false);
-    
-    if (foundBook) {
-      setCurrentBook(foundBook);
-      // Load libraries for region
-      setLibraries(MOCK_LIBRARIES[selectedRegion] || []);
-      
-      // Save Search Log Simulation (POST to backend log in background)
-      console.log('Search log saved: ', {
-        isbn: cleanIsbn,
-        region: selectedRegion,
-        timestamp: new Date().toISOString(),
-        latency: Math.round(endTime - startTime)
+    try {
+      const formData = new FormData();
+      formData.append('isbn13', cleanIsbn);
+      formData.append('small_region_code', selectedRegion);
+
+      const response = await fetch('/barcode/detect/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        }
       });
-    } else {
+      
+      const endTime = performance.now();
+      setLatency(Math.round(endTime - startTime));
+      setLoading(false);
+
+      if (!response.ok) {
+        throw new Error(`서버 응답 오류 (Status: ${response.status})`);
+      }
+
+      const data = await response.json();
+      
+      if (data.status && data.status.code === 'S') {
+        const bookDetails = data.result_data.book_detail[0];
+        const libInfo = data.result_data.library_info;
+
+        const mappedBook: Book = {
+          isbn13: bookDetails.isbn13,
+          title: bookDetails.bookname,
+          author: bookDetails.authors,
+          publisher: bookDetails.publisher,
+          pubYear: bookDetails.publication_year,
+          coverUrl: bookDetails.bookImageURL || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=300&auto=format&fit=crop',
+          desc: bookDetails.description || '도서 정보 설명이 존재하지 않습니다.',
+          loanStats: {
+            male: 50,
+            female: 50,
+            ageGroups: [
+              { age: '20대', pct: 45 },
+              { age: '30대', pct: 35 },
+              { age: '기타', pct: 20 }
+            ],
+            recommendations: []
+          }
+        };
+
+        const mappedLibraries: LibraryStatus[] = Object.keys(libInfo).map((key) => {
+          const lib = libInfo[key];
+          return {
+            name: lib.libName,
+            code: lib.libCode,
+            hasBook: lib.hasBook === 'Y',
+            loanAvailable: lib.loanAvailable === 'Y',
+            location: lib.address,
+          };
+        });
+
+        setCacheHit(Math.round(endTime - startTime) < 500);
+        setCurrentBook(mappedBook);
+        setLibraries(mappedLibraries);
+      } else {
+        setCurrentBook(null);
+        setLibraries([]);
+        alert(`도서 검색 실패: ${data.status?.msg || '정보를 조회할 수 없습니다.'}`);
+      }
+    } catch (error: any) {
+      setLoading(false);
       setCurrentBook(null);
       setLibraries([]);
-      alert('검색한 ISBN 도서를 찾을 수 없습니다. (테스트 가능 ISBN: 9791158392239, 9788966260959, 9791162244197)');
+      console.error('API Error:', error);
+      alert(`백엔드 서버 통신 에러: ${error.message}`);
     }
   };
 
-  // Re-fetch libraries when region changes for active book
+  // Re-fetch library status when region changes for active book
   useEffect(() => {
     if (currentBook) {
-      setLibraries(MOCK_LIBRARIES[selectedRegion] || []);
+      triggerSearch(currentBook.isbn13);
     }
-  }, [selectedRegion, currentBook]);
+  }, [selectedRegion]);
 
   // Wishlist Actions
   const openWishlistModal = () => {
@@ -332,18 +295,10 @@ function App() {
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button 
                 className="btn btn-secondary" 
-                onClick={() => setScanning(true)} 
-                disabled={scanning}
+                onClick={() => setScanning(!scanning)} 
                 style={{ position: 'relative', overflow: 'hidden' }}
               >
-                {scanning ? '스캔하는 중...' : '📸 모바일 바코드 스캔 데모'}
-                {scanning && (
-                  <div style={{
-                    position: 'absolute', left: 0, bottom: 0, height: '4px',
-                    background: 'var(--color-secondary)', width: `${scanProgress}%`,
-                    transition: 'width 0.3s ease'
-                  }} />
-                )}
+                {scanning ? '🛑 스캔 취소' : '📸 모바일 바코드(ISBN) 스캔'}
               </button>
               
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -363,22 +318,13 @@ function App() {
               </div>
             </div>
 
-            {/* SCANNING PREVIEW SIMULATION */}
+            {/* SCANNING PREVIEW */}
             {scanning && (
-              <div style={{
-                marginTop: '1.5rem', height: '200px', borderRadius: '15px',
-                border: '2px dashed var(--color-secondary)', background: 'rgba(0, 242, 254, 0.05)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                position: 'relative', overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute', width: '100%', height: '2px', background: 'var(--color-secondary)',
-                  top: `${scanProgress}%`, left: 0, boxShadow: '0 0 10px var(--color-secondary)',
-                  animation: 'pulseGlow 1.5s infinite'
-                }} />
-                <span style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📹</span>
-                <span style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>카메라 바코드 탐지중 ({scanProgress}%)</span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>책 바코드를 카메라 뷰 안에 가깝게 대주세요</span>
+              <div style={{ marginTop: '1.5rem', background: '#fff', borderRadius: '15px', overflow: 'hidden', color: '#000' }}>
+                <div id="reader" style={{ width: '100%' }}></div>
+                <div style={{ textAlign: 'center', padding: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
+                  책 뒷면의 바코드(ISBN)가 네모 상자 안에 들어오도록 비춰주세요.
+                </div>
               </div>
             )}
           </div>
@@ -453,9 +399,9 @@ function App() {
                     onChange={(e) => setSelectedRegion(e.target.value)}
                     style={{ width: 'auto', padding: '0.5rem 2.5rem 0.5rem 1rem', fontSize: '0.9rem' }}
                   >
-                    <option value="seoul-gangnam">서울특별시 강남구</option>
-                    <option value="seoul-seocho">서울특별시 서초구</option>
-                    <option value="gyeonggi-bundang">경기도 성남시 분당구</option>
+                    <option value="11230">서울특별시 강남구</option>
+                    <option value="11220">서울특별시 서초구</option>
+                    <option value="31023">경기도 성남시 분당구</option>
                   </select>
                 </div>
 

@@ -1,15 +1,26 @@
-FROM ubuntu:18.04
+FROM python:3.12-slim
 
-RUN apt-get update && \
-apt-get install -y python3-pip python3-dev &&\
- apt-get clean
+# Install system dependencies
+# pyzbar requires libzbar0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libzbar0 \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /djangoproject
-ADD . /djangoproject
-RUN pip3 install -r requirements.txt
+WORKDIR /app
 
+# Copy requirements
+COPY requirements/common.txt ./requirements/common.txt
+COPY requirements/prod.txt ./requirements/prod.txt
+COPY requirements.txt ./requirements.txt
 
+# Install python dependencies
+RUN pip install --no-cache-dir -r requirements/prod.txt
 
+# Copy project files
+COPY . .
+
+# Expose Django port
 EXPOSE 8000
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
-# CMD ["gunicorn", "iioi.wsgi:application", "--bind", "0.0.0.0:80"]
+
+# Start Django using runserver or gunicorn
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -21,6 +21,41 @@ services:
     volumes:
       - redisdata:/data
 
+  backend:
+    build:
+      context: ./iiol
+      dockerfile: Dockerfile
+    container_name: iiol-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=iiol.settings.prod
+      - TARGET_ENV=prod
+      - DEBUG=True
+      - SECRET_KEY=${SECRET_KEY:-change-this-to-a-very-secure-random-string-12345!}
+      - ALLOWED_HOSTS=*
+      - POSTGRES_DB=${POSTGRES_DB:-iiol}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_LOCATION=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: iiol-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
   redisdata:

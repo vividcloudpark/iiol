@@ -1,3 +1,14 @@
-/media
-/static
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git
+.github
+.gitignore
+venv/
+.venv/
 db.sqlite3
+/media/
+/static/
+.static_root/
+local_settings.py

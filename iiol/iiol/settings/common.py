@@ -15,7 +15,7 @@ dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
 
-FORCE_SCRIPT_NAME = os.environ.get("MY_URL_PREFIX")
+FORCE_SCRIPT_NAME = os.environ.get("MY_URL_PREFIX") or ""
 print(f"Serviced on Prefix : {FORCE_SCRIPT_NAME}")
 SERVER_ALIAS = os.environ.get("SERVER_ALIAS")
 # Quick-start development settings - unsuitable for production
@@ -82,7 +82,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "iiol.urls"
 
-CACHE_TTL = 60 * 60 * 24  # 24h
+CACHE_TTL = 60 * 60 * 24 * 7  # 7 days
 
 
 CACHES = {
@@ -127,7 +127,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "iiol",
-        "USER": os.environ.get("POSTGRES_USERNAME"),
+        "USER": os.environ.get("POSTGRES_USERNAME", os.environ.get("POSTGRES_USER")),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         "HOST": os.environ.get("POSTGRES_HOST"),
         "PORT": os.environ.get("POSTGRES_PORT"),
@@ -259,4 +259,24 @@ SPECTACULAR_SETTINGS = {
         # https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
     },
     "COMPONENT_SPLIT_REQUEST": True,
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "[%(levelname)s] %(asctime)s - %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
 }

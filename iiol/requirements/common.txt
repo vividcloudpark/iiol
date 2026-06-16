@@ -9,9 +9,7 @@ django-filter
 python-dotenv
 django-cors-headers
 
-#barcode detect
-opencv-python-headless
-pyzbar
+#barcode detect (Now handled by frontend html5-qrcode)
 
 requests
 

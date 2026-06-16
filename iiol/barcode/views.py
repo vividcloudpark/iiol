@@ -11,12 +11,11 @@ from library.models import Library, SmallRegion, BigRegion
 from books.models import Book
 from django.conf import settings
 from django.core.cache import cache
+import logging
 from django.views.decorators.cache import cache_page
 from books.serializers import BookSerializer
 from library.serializers import LibrarySerializer
 from .serializers import BarcodeSerializer
-import cv2
-import numpy as np
 import json
 import os
 from utils.library_api import LibraryApi
@@ -26,15 +25,20 @@ from rest_framework.throttling import AnonRateThrottle
 from .tasks import save_book_on_DB
 
 CACHE_TTL = getattr(settings, "CACHE_TTL")
+logger = logging.getLogger(__name__)
 
 EMPTY_ISBN = "0000000000000"
 
 
 class BarcodeView(APIView):
+    """
+    바코드(ISBN) 혹은 도서 사진을 기반으로, 
+    해당 도서의 메타데이터와 선택된 지역(small_region_code) 내 도서관들의 
+    소장 여부 및 대출 가능 여부를 조회하여 반환해주는 통합 API View입니다.
+    """
     permission_classes = [AllowAny]
     queryset = Barcode.objects.all()
     serializer_class = BarcodeSerializer
-    bardet = cv2.barcode_BarcodeDetector()
     LibAPI = LibraryApi()
     BOOKINFO_JSON = None
     LIBRARY_INFO_JSON = None
@@ -46,6 +50,15 @@ class BarcodeView(APIView):
     request = None
 
     def response_with_type(self, code, msg, RESTCode=status.HTTP_200_OK):
+        """
+        API 요청 결과를 JSON 혹은 HTML 형태로 일관성 있게 반환해주는 헬퍼 메서드입니다.
+        검색 이력을 DB(Barcode 객체)에 저장(로깅)하는 역할도 함께 수행합니다.
+        
+        Args:
+            code (str): 'S' (성공) 혹은 'E', 'W' (에러/경고) 등의 커스텀 상태 코드
+            msg (str): 반환할 메시지
+            RESTCode (int): 최종적으로 응답에 실어보낼 HTTP 상태 코드
+        """
         msg = "" if msg == None else msg
         user = self.request.user.pk if self.request.user.is_authenticated else None
         if self.ISBN == None:
@@ -70,7 +83,9 @@ class BarcodeView(APIView):
             msg = serializer.errors
 
         self.set_JSON_header(code, msg)
-        if self.request.content_type == "application/json":
+        
+        # 클라이언트가 JSON을 명시적으로 요구하거나, Content-Type이 JSON인 경우 JSON 반환
+        if "application/json" in self.request.META.get("HTTP_ACCEPT", "") or self.request.content_type == "application/json":
             return JsonResponse(
                 data=self.return_json,
                 status=RESTCode,
@@ -115,12 +130,6 @@ class BarcodeView(APIView):
                 type=str,
                 description="13자리의 ISBN13 바코드. 사진이 있을경우 생략가능",
                 required=True,
-            ),
-            OpenApiParameter(
-                name="barcode_photo",
-                type=bytes,
-                description="바코드 사진. 최대 10MB 제한",
-                required=False,
             ),
         ],
         responses={
@@ -234,6 +243,13 @@ class BarcodeView(APIView):
         ],
     )
     def post(self, request, *args, **kwargs):
+        """
+        POST 요청을 받아 도서 정보를 조회합니다.
+        FormData 또는 JSON을 통해 'isbn13' 혹은 'barcode_photo'와 'small_region_code'를 전달받아,
+        1) 도서 상세 정보를 조회하고
+        2) 지역 도서관 목록을 가져온 후
+        3) 각 도서관의 소장 및 대출 가능 여부를 확인합니다.
+        """
         self.request = request
         self.return_json = {
             "status": {"code": "", "msg": ""},
@@ -250,22 +266,13 @@ class BarcodeView(APIView):
                     self.response_with_type(
                         "E", "13자리의 ISBN을 입력하십시오.", RESTCode=status.HTTP_400_BAD_REQUEST
                     )
-            elif "barcode_photo" in request.FILES:
-                barcode_photo = request.FILES["barcode_photo"].read()
-                img = bytearray(barcode_photo)
-                numbyarray = np.asarray(img, dtype=np.uint8)
-                img = cv2.imdecode(buf=numbyarray, flags=cv2.IMREAD_COLOR)
-                for detect__string in self.bardet.detectAndDecode(img):
-                    if len(detect__string) == 13:
-                        self.ISBN = detect__string
-                        break
             else:
                 return self.response_with_type(
                     "E", "데이터가 입력되지 않았습니다.", RESTCode=status.HTTP_400_BAD_REQUEST
                 )
 
         except Exception as e:
-            print(e)
+            logger.error(f"Error parsing barcode/ISBN search request: {e}", exc_info=True)
             return self.response_with_type(
                 "E",
                 "ISBN을 추출하던 중 오류가 발생헀습니다. 직접 ISBN을 입력해보십시오.",
@@ -304,6 +311,11 @@ class BarcodeView(APIView):
             return self.response_with_type("S", MSG, RESTCode=status.HTTP_200_OK)
 
     def get_library_list(self, region_code):
+        """
+        특정 지역 코드(small_region_code)에 해당하는 도서관 목록을 조회합니다.
+        먼저 Redis 캐시에서 조회하고, 없으면 DB에서 확인하며,
+        DB에도 없으면 외부 API(LibraryApi)를 호출하여 데이터를 가져온 뒤 캐시 및 DB에 저장합니다.
+        """
         LIBRARY_INFO_JSON = cache.get(f"Library_in_{region_code}")
         # LIBRARY_INFO_JSON = None
         if LIBRARY_INFO_JSON is None:  # 캐시조회실패
@@ -357,6 +369,11 @@ class BarcodeView(APIView):
         return
 
     def book_info(self):
+        """
+        ISBN을 기반으로 도서의 상세 메타데이터 및 대출 통계 정보를 조회합니다.
+        먼저 캐시를 확인하고, 없으면 DB를 조회하며,
+        DB에도 없으면 외부 API(도서관정보나루)를 통해 최초 조회 후 저장합니다.
+        """
         msg = None
         # 일단은 ISBN13이 들어올것이라고 기대, ISBN10일경우도 추후 만들기
         BOOKINFO_JSON = cache.get(f"ISBN13_{self.ISBN}")
@@ -386,7 +403,7 @@ class BarcodeView(APIView):
                     if serializer.is_valid():
                         serializer.save()
                     else:
-                        print(serializer.errors)
+                        logger.warning(f"Serializer validation failed for book data: {serializer.errors}")
                         self.set_JSON_header(
                             "W", serializer.errors
                         )  # Serializer 오류시 logging을 위함
@@ -396,6 +413,11 @@ class BarcodeView(APIView):
         return True, msg
 
     def get_book_availablity_by_libcode(self):
+        """
+        앞서 확보한 도서관 목록(libcode_list)을 순회하며,
+        각 도서관별로 해당 도서(ISBN)의 소장 여부와 대출 가능 상태를 확인합니다.
+        마찬가지로 캐시를 우선적으로 활용하여 응답 지연 시간을 최소화합니다.
+        """
         for libcode in self.libcode_list:
             book_availablity_cache = cache.get(f"{libcode}_{self.ISBN}")
             if book_availablity_cache is not None:
@@ -421,7 +443,7 @@ class BarcodeView(APIView):
                 cache.set(
                     f"{libcode}_{self.ISBN}",
                     book_availablity_cache,
-                    get_remain_sec_of_today(),
+                    CACHE_TTL,
                 )
         return
 

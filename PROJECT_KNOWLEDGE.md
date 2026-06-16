@@ -87,3 +87,21 @@ IIOL은 **"이 책은, 우리 동네 도서관에 소장되어 있고 대출이 
 라즈베리파이 프로덕션 배포 시 소스 코드 수정 없이 환경설정을 다르게 구성할 수 있도록 지원합니다.
 *   **로컬 개발 환경**: `TARGET_ENV=dev`, `DEBUG=True`, `POSTGRES_HOST=127.0.0.1`, `REDIS_LOCATION=redis://127.0.0.1:6379/0` 로컬 호스트 포트에 바인딩하여 띄운 프로세스(Django, Vite)가 직접 접근합니다.
 *   **라즈베리파이 운영 환경**: `TARGET_ENV=prod`, `DEBUG=False`, `POSTGRES_HOST=db`, `REDIS_LOCATION=redis://redis:6379/0` 컨테이너 네트워크 브릿지를 통해 컨테이너명(db, redis)으로 통신을 격리하고 보안을 강화합니다.
+
+---
+
+## 🪵 6. 로깅 가이드라인 (Logging Standards)
+
+개발 및 운영 환경에서 시스템 모니터링과 디버깅 편의성을 높이기 위해 엄격한 로깅 표준을 준수합니다.
+
+### 🔍 현재 로그 확인 방식
+- **컨테이너 통합 로그**: Docker Compose를 통해 구동 시 백엔드의 표준 출력(stdout/stderr)이 도커 로그에 집계됩니다.
+  - 실행 명령어: `docker compose logs backend` (실시간 로그 추적: `-f` 옵션 추가)
+- **외부 API 호출 로그**: `LibraryApi` 호출 시 `API CALLED ->>> [서비스명]` 포맷의 출력문이 남습니다.
+- **검색 결과 데이터베이스 영구 로그**: 사용자의 모든 검색 결과와 응답 성공 여부, 지연 시간 등은 DB 내의 `Barcode` 테이블에 트래킹 목적으로 자동 누적 기록됩니다.
+
+### 🚨 향후 구현 시 필수 지침 (Best Practices)
+1. **표준 라이브러리 사용**: 단순 `print()` 호출을 지양하고, Python 표준 `logging` 패키지(Django 통합 logger)를 활용하여 정해진 로그 레벨(`INFO`, `WARNING`, `ERROR`, `CRITICAL`)에 따라 메시지를 구분 출력해야 합니다.
+2. **구조화된 로그 데이터 (JSON)**: 로그 트레이싱 및 통합 수집을 용이하게 하기 위해, 장기적으로 JSON 포맷팅이나 정형화된 메타데이터를 로그 내용에 포함하도록 유도합니다.
+3. **중요 예외 처리 내역 기록**: 외부 OpenAPI 연동 시 발생하는 타임아웃, 포맷 에러, 빈 응답 등은 단순 `except: pass`나 `print(e)` 처리에 그치지 않고, 반드시 `logger.error` 혹은 `logger.warning` 블록을 통하여 원인 추적이 가능한 Context를 로깅해야 합니다.
+
