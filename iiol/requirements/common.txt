@@ -1,20 +1,19 @@
-django~=4.2.4
+django>=5.1,<5.2
 django-bootstrap5
 pillow
 easy-thumbnails
 djangorestframework
-djangorestframework-simplejwt~=5.3.0
+djangorestframework-simplejwt>=5.3.0
 markdown
 django-filter 
 python-dotenv
 django-cors-headers
 
 #barcode detect
-opencv-python
+opencv-python-headless
 pyzbar
 
 requests
-
 
 #postgreSQL driver
 psycopg2-binary
@@ -24,6 +23,5 @@ django-redis
 redis
 celery
 
-#swagger
-drf-yasg
+#swagger (drf-spectacular replaces drf-yasg for Django 5.x compatibility)
 drf-spectacular
