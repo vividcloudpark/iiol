@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · 이올{% endblock %}
+{% block content %}
+<section class="account-card">
+  <p class="eyebrow">IIOL ACCOUNT</p>
+  <h1>{{ title }}</h1>
+  <form method="post" class="account-form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="field {% if field.name == 'region_code' %}region-field{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true">*</span>{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<small>{{ field.help_text|safe }}</small>{% endif %}
+        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="button button-primary full-width" type="submit">{{ submit_label }}</button>
+  </form>
+  {% if request.resolver_match.url_name == 'login' %}<p class="account-switch">계정이 없으신가요? <a href="{% url 'signup' %}">회원가입</a></p>{% endif %}
+  {% if request.resolver_match.url_name == 'profile' %}<div class="account-links"><a href="{% url 'password_change' %}">비밀번호 변경</a><a href="{% url 'home' %}">검색으로 돌아가기</a></div>{% endif %}
+</section>
+{% endblock %}

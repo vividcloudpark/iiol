@@ -1,0 +1,10 @@
+.git
+.venv
+node_modules
+static/build
+__pycache__
+*.py[cod]
+db.sqlite3
+collected-static
+coverage
+.env

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}이올 · 이 책, 우리 동네 도서관에 있을까?{% endblock %}
+{% block content %}
+{{ regions|json_script:"region-data" }}
+<section class="hero">
+  <p class="eyebrow">IS IT IN OUR LIBRARY?</p>
+  <h1>서점에서 찍고,<br><em>우리 동네 도서관</em>에서 찾아요.</h1>
+  <p class="hero-copy">ISBN 바코드를 스캔하면 가까운 지역의 도서관 소장 정보를 확인할 수 있어요.</p>
+</section>
+
+<section class="search-card" aria-labelledby="search-title">
+  <h2 id="search-title">책 찾기</h2>
+  <form id="search-form" data-search-url="{% url 'search' %}">
+    {% csrf_token %}
+    <div class="field region-field">
+      <label for="province-select">검색할 지역 <span aria-hidden="true">*</span></label>
+      <div class="region-selects">
+        <select id="province-select" aria-label="시·도" required><option value="">시·도 선택</option></select>
+        <select id="region-select" name="region_code" aria-label="시·군·구" required><option value="">시·군·구 선택</option></select>
+      </div>
+    </div>
+
+    <div class="scan-panel">
+      <div class="scan-heading"><div><span class="step">01</span><h3>ISBN 바코드 스캔</h3></div><span class="scan-hint">책 뒷면 바코드를 화면에 맞춰주세요</span></div>
+      <div class="camera-frame" id="camera-frame" hidden>
+        <video id="camera-video" muted playsinline aria-label="바코드 스캔 카메라 영상"></video>
+        <div class="scan-guide" aria-hidden="true"><span></span></div>
+        <button type="button" id="stop-camera" class="camera-close" aria-label="카메라 닫기">×</button>
+      </div>
+      <div class="scan-actions">
+        <button class="button button-primary" id="start-camera" type="button"><span aria-hidden="true">▥</span> 카메라로 스캔</button>
+        <label class="button button-light file-button" for="barcode-photo">사진으로 찾기</label>
+        <input id="barcode-photo" type="file" accept="image/*" capture="environment" hidden>
+      </div>
+      <p class="camera-status" id="camera-status" role="status" aria-live="polite">카메라가 안 되면 사진을 올리거나 ISBN을 직접 입력할 수 있어요.</p>
+    </div>
+
+    <div class="field isbn-field">
+      <label for="isbn-input"><span class="step">02</span> ISBN-13 직접 입력</label>
+      <div class="isbn-row">
+        <input id="isbn-input" name="isbn13" type="text" inputmode="numeric" autocomplete="off" placeholder="예: 9788954699044" maxlength="17" aria-describedby="isbn-help">
+        <button class="button button-dark" type="submit" id="search-button">도서관 찾기</button>
+      </div>
+      <small id="isbn-help">978 또는 979로 시작하는 ISBN-13을 입력해 주세요.</small>
+    </div>
+  </form>
+  <div id="results" class="results" aria-live="polite"></div>
+</section>
+
+<section class="account-nudge">
+  <div><span class="nudge-icon" aria-hidden="true">⌂</span><p><strong>내 지역을 저장해두세요</strong><br>다음 검색부터 지역을 자동으로 선택해 드려요.</p></div>
+  {% if user.is_authenticated %}<a href="{% url 'profile' %}">지역 수정하기 <span aria-hidden="true">→</span></a>{% else %}<a href="{% url 'signup' %}">가입하고 저장하기 <span aria-hidden="true">→</span></a>{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+  <script>window.IIOL_PROFILE_REGION = "{{ profile_region|escapejs }}";</script>
+  <script type="module" src="{% static 'build/iiol.js' %}"></script>
+{% endblock %}
